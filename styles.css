@@ -114,17 +114,17 @@ h1, h2, h3 { font-family: 'Alfa Slab One', serif; font-weight: 400; margin: 0; }
 
 /* VISIT */
 .visit {
-  background: var(--oxblood-deep); padding: 96px var(--gutter);
+  background: var(--bone); padding: 96px var(--gutter);
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; align-items: center;
 }
 .visit-info { display: flex; flex-direction: column; gap: 24px; align-items: flex-start; }
-.visit .eyebrow { color: var(--gold); }
-.visit h2 { font-size: clamp(30px, 4vw, 38px); color: var(--bone); }
+.visit .eyebrow { color: var(--clay); }
+.visit h2 { font-size: clamp(30px, 4vw, 38px); color: var(--oxblood); }
 .facts { list-style: none; margin: 0; padding: 8px 0 0; display: flex; flex-direction: column; gap: 18px; }
-.facts li { display: flex; gap: 14px; align-items: flex-start; font-size: 16px; color: var(--bone-soft); }
+.facts li { display: flex; gap: 14px; align-items: flex-start; font-size: 16px; color: var(--ink-soft); }
 .facts a { text-decoration: underline; text-underline-offset: 3px; }
-.facts svg { flex-shrink: 0; margin-top: 2px; }
-.visit-map { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+.facts svg { stroke: var(--clay); flex-shrink: 0; margin-top: 2px; }
+.visit-map { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(74,36,28,0.2); }
 .visit-map img { width: 100%; height: 100%; min-height: 320px; object-fit: cover; }
 
 /* FOOTER */
