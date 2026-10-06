@@ -76,6 +76,7 @@ h1, h2, h3 { font-family: 'Alfa Slab One', serif; font-weight: 400; margin: 0; }
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px;
 }
 .strip-item { border-left: 3px solid var(--oxblood); padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.strip-item strong svg { display: block; height: 37px; width: 79px; }
 .strip-item strong { font-family: 'Alfa Slab One', serif; font-weight: 400; font-size: 34px; line-height: 1.1; }
 
 /* HERO BADGES */
