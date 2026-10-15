@@ -105,12 +105,6 @@ h1, h2, h3 { font-family: 'Alfa Slab One', serif; font-weight: 400; margin: 0; }
 .tickets .eyebrow { color: var(--gold); }
 .tickets h2 { font-size: clamp(32px, 4.5vw, 42px); color: var(--bone); }
 .tickets-head p { margin: 0; font-size: 17px; line-height: 1.6; color: var(--bone-soft); }
-.price-row { display: flex; flex-wrap: wrap; gap: 20px; }
-.price-card { background: var(--gold); color: var(--oxblood); border-radius: 6px; padding: 22px 34px; min-width: 220px; display: flex; flex-direction: column; gap: 6px; }
-.price { display: flex; align-items: baseline; gap: 8px; }
-.price strong { font-family: 'Alfa Slab One', serif; font-weight: 400; font-size: 64px; line-height: 1; }
-.price span { font-weight: 700; font-size: 18px; letter-spacing: 0.1em; }
-.fineprint { margin: 0; font-size: 14px; color: var(--muted); max-width: 640px; }
 
 /* VISIT */
 .visit {
