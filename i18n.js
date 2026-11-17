@@ -29,7 +29,7 @@
       fact_address: 'Uvero Alto, La Altagracia, República Dominicana — a 15 minutos de los resorts de Uvero Alto',
       fact_departures: 'Salidas de mañana y tarde, con recogida en tu hotel de Uvero Alto',
       fact_booking: 'Reservas por WhatsApp o correo, confirmadas el mismo día',
-      map_alt: 'Mapa del parque con zonas y fauna',
+      map_link: 'Abrir en Google Maps →', maphl: 'es', mapgl: 'do',
       footer_copy: '© 2026 Totem Nature Park · Uvero Alto, La Altagracia, República Dominicana'
     },
     en: {
@@ -61,7 +61,7 @@
       fact_address: 'Uvero Alto, La Altagracia, Dominican Republic — 15 minutes from the Uvero Alto resorts',
       fact_departures: 'Morning and afternoon departures, with pick-up at your Uvero Alto hotel',
       fact_booking: 'Booking by WhatsApp or e-mail, confirmed the same day',
-      map_alt: 'Park map with zones and wildlife',
+      map_link: 'Open in Google Maps →', maphl: 'en', mapgl: 'us',
       footer_copy: '© 2026 Totem Nature Park · Uvero Alto, La Altagracia, Dominican Republic'
     }
   };
@@ -91,6 +91,11 @@
       var v = d[el.getAttribute('data-i18n-alt')];
       if (v !== undefined) el.setAttribute('alt', v);
     });
+    var map = document.querySelector('iframe[data-map]');
+    if (map) {
+      var u = map.getAttribute('data-src').split('{hl}').join(d.maphl).split('{gl}').join(d.mapgl);
+      if (map.getAttribute('src') !== u) map.setAttribute('src', u);
+    }
     document.querySelectorAll('.lang-btn').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
