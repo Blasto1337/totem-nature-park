@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Reserva tu visita · Totem Nature Park</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="booking.css">
+</head>
+<body data-title-key="bk_page_title">
+
+  <header class="nav">
+    <a href="index.html" class="brand">
+      <svg width="30" height="34" viewBox="0 0 30 34" fill="none" aria-hidden="true">
+        <rect y="0" width="30" height="9" rx="1" fill="#D9A13B"/>
+        <rect y="11.5" width="30" height="9" rx="1" fill="#2E7D5B"/>
+        <rect y="23" width="30" height="9" rx="1" fill="#F4EEE3"/>
+      </svg>
+      TOTEM NATURE PARK
+    </a>
+    <div class="nav-links">
+      <a href="index.html#zones" class="nav-link" data-i18n="nav_aviary">Aviario</a>
+      <a href="index.html#visit" class="nav-link" data-i18n="nav_visit">Visítanos</a>
+      <div class="lang-switch" role="group" aria-label="Idioma / Language">
+        <button type="button" class="lang-btn" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="bk">
+    <div class="bk-demo" data-i18n="bk_demo">Demo · fechas y precios de ejemplo, el pago es una simulación</div>
+    <section class="bk-head">
+      <span class="eyebrow" data-i18n="bk_eyebrow">Reserva en línea</span>
+      <h1 data-i18n="bk_title">Reserva tu visita</h1>
+      <p data-i18n="bk_lead">Elige el día y la excursión, paga en línea y recibe tu entrada con código QR al instante.</p>
+    </section>
+    <div class="bk-wrap">
+      <section class="bk-card" id="bk" aria-live="polite"></section>
+      <aside class="bk-side" id="bkSide"></aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <small data-i18n="footer_copy">© 2026 Totem Nature Park · Uvero Alto, La Altagracia, República Dominicana</small>
+    <nav>
+      <a href="index.html#zones" class="nav-link" data-i18n="nav_aviary">Aviario</a>
+      <a href="index.html#entradas" class="nav-link" data-i18n="nav_tickets">Entradas</a>
+      <a href="index.html#visit" class="nav-link" data-i18n="nav_visit">Visítanos</a>
+    </nav>
+  </footer>
+
+  <div id="bkLayer"></div>
+
+  <script src="i18n.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="demo-store.js"></script>
+  <script src="booking.js"></script>
+</body>
+</html>
