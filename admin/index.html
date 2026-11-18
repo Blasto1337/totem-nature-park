@@ -304,6 +304,7 @@ const VIEWS={
   vstup:{t:'Vstup a QR',i:'<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><rect x="8" y="8" width="8" height="8" rx="1"/>',nw:true},
   smeny:{t:'Směny',i:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
   ukoly:{t:'Úkoly',i:'<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>'},
+  sklad:{t:'Sklad',i:'<path d="M3 9l9-5 9 5v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M7 20v-6h10v6M7 17h10"/>',nw:true},
   zvirata:{t:'Zvířata a krmení',i:'<circle cx="6" cy="9" r="2"/><circle cx="10" cy="5" r="2"/><circle cx="14" cy="5" r="2"/><circle cx="18" cy="9" r="2"/><path d="M12 11c-3 0-6 4-6 7 0 2 2 3 6 1 4 2 6 1 6-1 0-3-3-7-6-7z"/>'},
   nakupy:{t:'Nákupy',i:'<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>'},
   pokladna:{t:'Pokladna',i:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M7 9V4h10v5M7 14h2M11 14h2M15 14h2M7 17h10"/>'},
@@ -311,20 +312,323 @@ const VIEWS={
   partneri:{t:'Partneři',i:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 15c3 0 5 2 5 4.5"/>'}
 };
 const ROLES={
-  simon:['prehled','rezervace','web','vstup','smeny','ukoly','zvirata','nakupy','pokladna','finance','partneri'],
-  yasmin:['prehled','smeny','ukoly','zvirata','nakupy'],
-  ramon:['prehled','smeny','ukoly','zvirata','nakupy'],
-  luis:['prehled','smeny','ukoly','nakupy'],
-  ana:['prehled','vstup','pokladna','smeny','ukoly']
+  simon:['prehled','rezervace','web','vstup','smeny','ukoly','zvirata','sklad','nakupy','pokladna','finance','partneri'],
+  yasmin:['prehled','smeny','ukoly','zvirata','sklad','nakupy'],
+  ramon:['prehled','smeny','ukoly','zvirata','sklad','nakupy'],
+  luis:['prehled','smeny','ukoly','sklad','nakupy'],
+  ana:['prehled','vstup','pokladna','sklad','nakupy','smeny','ukoly']
 };
-const DEPT={yasmin:'chov',ramon:'vet',luis:'udrzba',ana:'udrzba',simon:'chov'};
-const DEPTN={chov:'Chov a krmivo',vet:'Veterina',udrzba:'Údržba'};
-const CAT={
-  chov:[['Banány, trs 18 kg','trs',14],['Papája','kg',1.2],['Granule pro papoušky 10 kg','pytel',45],['Cvrčci živí, 500 ks','bal',22],['Krmivo pro opice 5 kg','pytel',36],['Listová zelenina','kg',2.5]],
-  vet:[['Antiparazitikum Ivermectin','ks',24],['Obvazový materiál','bal',15],['Dezinfekce F10, 1 l','ks',32],['Rukavice nitril, 100 ks','bal',11],['Vitamíny pro plazy','ks',19],['Váha do 10 kg','ks',58]],
-  udrzba:[['Pletivo pozink, 1 m','m',4.5],['Spony do pletiva, 100 ks','bal',6],['Lazura na dřevo 4 l','ks',38],['Vruty do dřeva, 200 ks','bal',9],['Benzín do sekačky 5 l','ks',7],['UV zářivka pro plazy','ks',29]]
-};
-const ST={ceka:['Čeká na schválení','warn'],schvaleno:['Schváleno, nakoupit','ok'],koupeno:['Koupeno','ok'],vraceno:['Vráceno k úpravě','bad'],zamitnuto:['Zamítnuto','bad']};
+const DEPT={yasmin:'chov',ramon:'vet',luis:'udrzba',ana:'bar',simon:'chov'};
+const DEPTN={chov:'Chov a krmivo',vet:'Veterina',udrzba:'Údržba',bar:'Bar a shop'};
+/* ---------- SKLAD ---------- */
+const LOCS={krm:'Krmivárna',vet:'Veterinární lékárna',hlavni:'Hlavní sklad',bar:'Bar a shop',udr:'Sklad údržby'};
+const ICAT={feed:'Krmivo',medicine:'Léčivo',maintenance:'Údržba',bar:'Bar',shop:'Suvenýry'};
+const MKIND={receipt:['Příjem','ok'],issue:['Výdej',''],feeding:['Krmení',''],sale:['Prodej',''],transfer:['Převod',''],inventory:['Inventura','warn'],writeoff:['Odpis','bad']};
+const DEPTCAT={chov:['feed'],vet:['medicine'],udrzba:['maintenance'],bar:['bar','shop']};
+const CATDEPT={feed:'chov',medicine:'vet',maintenance:'udrzba',bar:'bar',shop:'bar'};
+const ROLECATS={simon:null,yasmin:['feed'],ramon:['medicine'],luis:['maintenance'],ana:['bar','shop']};
+const TODAY_ISO='2026-12-19';
+const nowT=()=>{const n=new Date();return n.getHours()+':'+String(n.getMinutes()).padStart(2,'0')};
+const fq=n=>Number(n).toLocaleString('cs-CZ',{maximumFractionDigits:2});
+const czDate=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return `${+d}. ${+m}. ${y}`};
+const daysTo=iso=>Math.round((new Date(iso)-new Date(TODAY_ISO))/864e5);
+const item=id=>S.items.find(i=>i.id===id);
+const onHand=(id,loc)=>S.moves.reduce((a,m)=>a+(m.item===id&&(!loc||m.loc===loc)?m.qty:0),0);
+const locsOf=id=>Object.keys(LOCS).map(l=>[l,onHand(id,l)]).filter(([,q])=>Math.abs(q)>1e-9);
+const batchesOf=id=>{const g={};S.moves.filter(m=>m.item===id&&m.batch).forEach(m=>{g[m.batch]=g[m.batch]||{batch:m.batch,exp:m.exp,qty:0};g[m.batch].qty+=m.qty;if(m.exp)g[m.batch].exp=m.exp});return Object.values(g).filter(b=>b.qty>1e-9).sort((a,b)=>(a.exp||'9').localeCompare(b.exp||'9'))};
+const mvKey=m=>{const[d,mo]=m.d.split('.').map(x=>parseInt(x));const[h,mi]=String(m.t).split(':').map(Number);return ((mo*100+d)*24+h)*60+mi};
+const byNewest=a=>a.slice().sort((x,y)=>mvKey(y)-mvKey(x));
+const isLow=i=>onHand(i.id)<=i.min;
+const daysLeft=i=>i.daily?Math.floor(onHand(i.id)/i.daily):null;
+const myItems=()=>{const c=ROLECATS[S.role];return S.items.filter(i=>i.active!==false&&(!c||c.includes(i.cat)))};
+const expiring=()=>myItems().flatMap(i=>batchesOf(i.id).filter(b=>b.exp&&daysTo(b.exp)<=60).map(b=>({...b,item:i})));
+const catOf=d=>S.items.filter(i=>(DEPTCAT[d]||[]).includes(i.cat)&&i.active!==false).map(i=>[i.name,i.unit,i.cost,i.id]);
+const CAT=new Proxy({},{get:(_,d)=>catOf(d)});
+function addMove(itemId,qty,kind,loc,o={}){
+  const it=item(itemId);
+  const b=o.batch!==undefined?o.batch:(it&&it.batches&&qty<0?(batchesOf(itemId)[0]||{}).batch:null);
+  S.moves.push({id:'m'+(S.moves.length+1)+'_'+Math.random().toString(36).slice(2,6),item:itemId,qty,kind,loc:loc||(it&&it.loc),batch:b||null,exp:o.exp||null,d:o.d||TD,t:o.t||nowT(),by:o.by||S.role,note:o.note||'',ref:o.ref||null});
+}
+
+/* ukázkový sklad: konečné stavy a pohyby za prosinec, počáteční stav se dopočítá */
+const SEED_ITEMS=[
+  ['f1','Banány, trs 18 kg','feed','trs',3,14,'krm',0,1],['f2','Papája','feed','kg',10,1.2,'krm',0,5],
+  ['f3','Granule pro papoušky 10 kg','feed','pytel',1,45,'krm',1,0.25],['f4','Cvrčci živí, 500 ks','feed','bal',2,22,'krm',0,1],
+  ['f5','Krmivo pro opice 5 kg','feed','pytel',1,36,'krm',1,0.2],['f6','Listová zelenina','feed','kg',5,2.5,'krm',0,4],
+  ['v1','Antiparazitikum Ivermectin','medicine','ks',2,24,'vet',1],['v2','Obvazový materiál','medicine','bal',3,15,'vet',0],
+  ['v3','Dezinfekce F10, 1 l','medicine','ks',2,32,'vet',0],['v4','Rukavice nitril, 100 ks','medicine','bal',2,11,'vet',0],
+  ['v5','Vitamíny pro plazy','medicine','ks',1,19,'vet',1],
+  ['m1','Pletivo pozink, 1 m','maintenance','m',20,4.5,'udr',0],['m2','Spony do pletiva, 100 ks','maintenance','bal',2,6,'udr',0],
+  ['m3','Lazura na dřevo 4 l','maintenance','ks',1,38,'udr',0],['m4','Vruty do dřeva, 200 ks','maintenance','bal',1,9,'udr',0],
+  ['m5','Benzín do sekačky 5 l','maintenance','ks',2,7,'udr',0],['m6','UV zářivka pro plazy','maintenance','ks',2,29,'udr',0],
+  ['b1','Voda','bar','ks',24,0.4,'bar',0,null,2],['b2','Presidente','bar','ks',24,1.1,'bar',0,null,4],['b3','Coco frío','bar','ks',10,1,'bar',0,null,5],
+  ['s1','Plyšová ara','shop','ks',5,7,'bar',0,null,18],['s2','Tričko Totem','shop','ks',10,8,'bar',0,null,22],['s3','Magnet totem','shop','ks',10,1.5,'bar',0,null,6],
+  ['s4','Kšiltovka','shop','ks',5,5,'bar',0,null,15],['s5','Pohlednice','shop','sada',10,1.2,'bar',0,null,5],['s6','Láhev Totem','shop','ks',5,7,'bar',0,null,19]
+].map(([id,name,cat,unit,min,cost,loc,batches,daily,price])=>({id,name,cat,unit,min,cost,loc,batches:!!batches,daily:daily||null,price:price||null,active:true}));
+const SEED_BATCH={f3:['L-2210','2027-04-30'],f5:['MK-77','2027-02-15'],v1:['IV-551','2027-01-10'],v5:['VT-88','2027-06-30']};
+const SEED_END={f1:{krm:2},f2:{krm:20},f3:{krm:3},f4:{krm:1},f5:{krm:2},f6:{krm:12},v1:{vet:1},v2:{vet:6},v3:{vet:3},v4:{vet:4},v5:{vet:2},
+  m1:{udr:15},m2:{udr:3},m3:{udr:2},m4:{udr:3},m5:{udr:4},m6:{udr:1},b1:{bar:30,hlavni:96},b2:{bar:18,hlavni:48},b3:{bar:12,hlavni:20},
+  s1:{bar:8},s2:{bar:25},s3:{bar:40},s4:{bar:12},s5:{bar:30},s6:{bar:4}};
+const SEED_EVENTS=[
+  ['f2',-3,'writeoff','krm','14. 12.','16:10','yasmin','Přezrálé'],
+  ['f6',-1,'inventory','krm','15. 12.','17:30','yasmin','Inventura krmivárny, zvadlé'],
+  ['f1',4,'receipt','krm','16. 12.','8:05','yasmin','Frutas del Este','P-0002'],['f2',20,'receipt','krm','16. 12.','8:05','yasmin','Frutas del Este','P-0002'],
+  ...['17. 12.','18. 12.','19. 12.'].flatMap(d=>[['f1',-1],['f2',-5],['f3',-0.25],['f4',-1],['f5',-0.2],['f6',-4]].map(([i,q])=>[i,q,'feeding','krm',d,'7:40','miguel','Ranní krmení'])),
+  ['b2',-24,'transfer','hlavni','18. 12.','10:15','ana','Doplnění baru'],['b2',24,'transfer','bar','18. 12.','10:15','ana','Doplnění baru'],
+  ['m1',-10,'issue','udr','18. 12.','9:20','luis','Oprava plotu u výběhu opic'],['m2',-1,'issue','udr','18. 12.','9:20','luis','Oprava plotu u výběhu opic'],
+  ['v1',-1,'issue','vet','18. 12.','11:00','ramon','Odčervení saimiri'],['v2',-1,'issue','vet','18. 12.','11:30','ramon','Ošetření saimiri Coco'],
+  ['b1',-10,'sale','bar','18. 12.','15:00','ana','Prodeje 18. 12.'],['b2',-6,'sale','bar','18. 12.','15:00','ana','Prodeje 18. 12.'],['b3',-4,'sale','bar','18. 12.','15:00','ana','Prodeje 18. 12.'],
+  ['s1',-2,'sale','bar','18. 12.','15:00','ana','Prodeje 18. 12.'],['s2',-1,'sale','bar','18. 12.','15:00','ana','Prodeje 18. 12.'],['s3',-3,'sale','bar','18. 12.','15:00','ana','Prodeje 18. 12.']
+];
+function seedStock(){
+  const sum={};
+  SEED_EVENTS.forEach(([i,q,,l])=>{sum[i+'|'+l]=(sum[i+'|'+l]||0)+q});
+  Object.entries(SEED_END).forEach(([i,locs])=>Object.entries(locs).forEach(([l,end])=>{
+    const start=Math.round((end-(sum[i+'|'+l]||0))*1000)/1000;
+    if(start>0){const b=SEED_BATCH[i];addMove(i,start,'receipt',l,{d:'1. 12.',t:'9:00',by:'simon',note:'Počáteční stav skladu',batch:b?b[0]:null,exp:b?b[1]:null,ref:'P-0001'})}
+  }));
+  SEED_EVENTS.forEach(([i,q,k,l,d,t,by,note,ref])=>{const b=SEED_BATCH[i];addMove(i,q,k,l,{d,t,by,note,ref,batch:b?b[0]:null})});
+}
+
+function skNeedsBadge(){return myItems().filter(isLow).length+expiring().length}
+
+function vSklad(){
+  const boss=S.role==='simon';
+  const tabs=[['zasoby','Zásoby'],['prijem','Naskladnit'],['vydej','Výdej, převod, odpis'],['inventura','Inventura'],['pohyby','Pohyby']].concat(boss?[['katalog','Katalog položek']]:[]);
+  if(!tabs.some(t=>t[0]===S.stab))S.stab='zasoby';
+  const body={zasoby:skZasoby,prijem:skPrijem,vydej:skVydej,inventura:skInventura,pohyby:skPohyby,katalog:skKatalog}[S.stab]();
+  return head(TODAY,'Sklad','Jediný zdroj pravdy o zásobách. Stav se nikdy nepřepisuje, je to součet pohybů: příjem, krmení, prodej, výdej, převod, inventura a odpis.',
+    `<button class="btn pri" data-stab="prijem">Naskladnit</button>`)+
+  `<div class="tabs" style="margin-bottom:16px">${tabs.map(([k,l])=>`<button class="tab" aria-pressed="${S.stab===k}" data-stab="${k}">${l}</button>`).join('')}</div>`+body;
+}
+
+function skZasoby(){
+  const all=myItems();
+  const cats=[...new Set(all.map(i=>i.cat))];
+  const list=all.filter(i=>(S.scat==='all'||i.cat===S.scat)&&(S.sloc==='all'||Math.abs(onHand(i.id,S.sloc))>1e-9||i.loc===S.sloc));
+  const low=all.filter(isLow), exp=expiring();
+  const value=all.reduce((a,i)=>a+Math.max(0,onHand(i.id))*(i.cost||0),0);
+  return `<div class="stats">
+    <div class="stat"><span>Položek</span><b>${all.length}</b><small>${cats.map(c=>ICAT[c]).join(', ')}</small></div>
+    <div class="stat"><span>Pod minimem</span><b>${low.length}</b><small>doplnit</small></div>
+    <div class="stat"><span>Expirace do 60 dní</span><b>${exp.length}</b><small>šarže</small></div>
+    <div class="stat"><span>Hodnota skladu</span><b>${usd(Math.round(value))}</b><small>v nákupních cenách</small></div>
+  </div>
+  ${low.length||exp.length?`<section class="card" style="margin-bottom:16px"><h2>Hlídat</h2><div class="list">
+    ${low.map(i=>`<div class="li"><span class="pill bad">Málo</span><div class="grow"><h3>${i.name}</h3><div class="meta">zbývá ${fq(onHand(i.id))} ${i.unit}, minimum ${fq(i.min)}${i.daily?` · vystačí na ${daysLeft(i)} ${daysLeft(i)===1?'den':daysLeft(i)<5?'dny':'dní'}`:''}</div></div><button class="btn sm" data-tobasket="${i.id}">Do košíku</button></div>`).join('')}
+    ${exp.map(b=>`<div class="li"><span class="pill ${daysTo(b.exp)<0?'bad':'warn'}">Expirace</span><div class="grow"><h3>${b.item.name}</h3><div class="meta">šarže ${b.batch}, ${fq(b.qty)} ${b.item.unit} · ${daysTo(b.exp)<0?'prošlá':'do '+czDate(b.exp)+', zbývá '+daysTo(b.exp)+' dní'}</div></div><button class="btn sm" data-wo="${b.item.id}|${b.batch}">Odepsat</button></div>`).join('')}
+  </div></section>`:''}
+  <section class="card"><div class="card-h"><div class="tabs">${[['all','Vše']].concat(cats.map(c=>[c,ICAT[c]])).map(([k,l])=>`<button class="tab" aria-pressed="${S.scat===k}" data-scat="${k}">${l}</button>`).join('')}</div>
+    <select id="skLoc" aria-label="Místo skladu"><option value="all">Všechna místa</option>${Object.entries(LOCS).map(([k,l])=>`<option value="${k}" ${S.sloc===k?'selected':''}>${l}</option>`).join('')}</select></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Položka</th><th>Kde</th><th class="r">Stav</th><th class="r">Minimum</th><th class="r">Vystačí</th><th class="r">Hodnota</th><th></th></tr></thead><tbody>
+  ${list.map(i=>{const q=S.sloc==='all'?onHand(i.id):onHand(i.id,S.sloc),lo=isLow(i);return `<tr><td><b style="color:var(--ink)">${i.name}</b><div class="note">${ICAT[i.cat]}${i.batches?' · šarže':''}</div></td>
+    <td class="note">${locsOf(i.id).map(([l,qq])=>`${LOCS[l]} ${fq(qq)}`).join('<br>')||LOCS[i.loc]}</td>
+    <td class="r"><b class="num" style="color:${lo?'var(--bad)':'var(--ink)'}">${fq(q)}</b> ${i.unit}</td><td class="r">${fq(i.min)}</td>
+    <td class="r">${i.daily?`<span class="pill ${daysLeft(i)<=1?'bad':daysLeft(i)<=3?'warn':''}">${daysLeft(i)} d</span>`:''}</td>
+    <td class="r">${usd(Math.round(Math.max(0,onHand(i.id))*(i.cost||0)))}</td><td><button class="btn sm" data-card="${i.id}">Karta</button></td></tr>`}).join('')||'<tr><td colspan="7"><div class="empty">Nic tu není</div></td></tr>'}
+  </tbody></table></div></section>`;
+}
+
+function skCard(id){
+  const i=item(id);if(!i)return;
+  const mv=byNewest(S.moves.filter(m=>m.item===id));
+  const week=-S.moves.filter(m=>m.item===id&&m.qty<0&&['feeding','sale','issue'].includes(m.kind)&&['13. 12.','14. 12.','15. 12.','16. 12.','17. 12.','18. 12.','19. 12.'].includes(m.d)).reduce((a,m)=>a+m.qty,0);
+  $('#layer').innerHTML=`<div class="modal" data-bg="1"><section class="card" role="dialog" aria-modal="true" aria-label="Karta položky" style="max-width:720px"><div class="card-h"><div><div class="eyebrow">${ICAT[i.cat]} · ${LOCS[i.loc]}</div><h2 style="font-size:16px;margin-top:4px">${i.name}</h2></div><button class="btn sm" data-act="closeModal">Zavřít</button></div>
+  <div class="stats" style="grid-template-columns:repeat(4,minmax(0,1fr));margin:0">
+    <div class="stat"><span>Stav</span><b>${fq(onHand(id))}</b><small>${i.unit}, minimum ${fq(i.min)}</small></div>
+    <div class="stat"><span>Spotřeba 7 dní</span><b>${fq(week)}</b><small>${i.unit}</small></div>
+    <div class="stat"><span>Nákupní cena</span><b>${i.cost!=null?usd(i.cost):'?'}</b><small>vážený průměr</small></div>
+    <div class="stat"><span>${i.price?'Prodejní cena':'Vystačí'}</span><b>${i.price?usd(i.price):i.daily?daysLeft(i)+' d':'–'}</b><small>${i.price?'na baru':i.daily?'podle denní spotřeby':''}</small></div>
+  </div>
+  <div class="grid g2">
+    <div><h2 style="margin-bottom:8px">Podle místa</h2><div class="list">${locsOf(id).map(([l,q])=>`<div class="li"><div class="grow">${LOCS[l]}</div><b class="num">${fq(q)} ${i.unit}</b></div>`).join('')||'<div class="empty">Nic na skladě</div>'}</div></div>
+    <div><h2 style="margin-bottom:8px">Šarže</h2>${i.batches?`<div class="list">${batchesOf(id).map(b=>`<div class="li"><div class="grow"><b class="code">${b.batch}</b><div class="meta">${b.exp?'expirace '+czDate(b.exp):'bez expirace'}</div></div><b class="num">${fq(b.qty)}</b></div>`).join('')||'<div class="empty">Žádná šarže</div>'}</div>`:'<p class="note">Položka se nesleduje po šaržích.</p>'}</div>
+  </div>
+  <div><h2 style="margin-bottom:8px">Poslední pohyby</h2><div class="tbl-wrap"><table><thead><tr><th>Kdy</th><th>Pohyb</th><th class="r">Množství</th><th>Kde</th><th>Kdo</th><th>Poznámka</th></tr></thead><tbody>
+  ${mv.slice(0,10).map(m=>`<tr><td>${m.d} ${m.t}</td><td><span class="pill ${MKIND[m.kind][1]}">${MKIND[m.kind][0]}</span></td><td class="r num" style="color:${m.qty>0?'var(--palm)':'var(--ink)'}">${m.qty>0?'+':''}${fq(m.qty)}</td><td>${LOCS[m.loc]||''}</td><td>${STAFF[m.by]?STAFF[m.by].n:''}</td><td class="note">${m.note}${m.batch?' · '+m.batch:''}</td></tr>`).join('')}
+  </tbody></table></div></div>
+  <div class="row"><button class="btn pri" data-act="cardRcv" data-id="${id}">Naskladnit</button><button class="btn" data-act="cardIssue" data-id="${id}">Vydat nebo převést</button>${CATDEPT[i.cat]?`<button class="btn" data-tobasket="${id}">Do košíku</button>`:''}</div>
+  </section></div>`;
+}
+
+function rcvLine(id,o={}){const i=item(id);return {item:id,ordered:o.ordered??null,qty:o.qty??'',price:o.price??(i?i.cost:''),loc:i?i.loc:'krm',batch:'',exp:''}}
+function startRcv(src,itemId){
+  if(src==='none'){S.rcv={src:null,sup:'',lines:[rcvLine(itemId||myItems()[0].id)],photo:false}}
+  else{const r=S.req.find(x=>x.id==src);if(!r)return;
+    const lines=r.items.map(([n,q,p])=>{const i=S.items.find(x=>x.name===n);return i?rcvLine(i.id,{ordered:q,qty:q,price:p}):null}).filter(Boolean);
+    S.rcv={src:r.id,sup:'',lines,photo:false}}
+  S.view='sklad';S.stab='prijem';$('#layer').innerHTML='';render();window.scrollTo(0,0);
+}
+function skPrijem(){
+  const boss=S.role==='simon';
+  const open=S.req.filter(r=>['schvaleno','koupeno'].includes(r.st)&&(boss||r.dept===DEPT[S.role]));
+  const r=S.rcv;
+  const items=myItems();
+  const total=r?r.lines.reduce((a,l)=>a+(+l.qty||0)*(+l.price||0),0):0;
+  const src=r&&r.src?S.req.find(x=>x.id==r.src):null;
+  return `<div class="pos">
+  <section class="card">${!r?`<h2>Co přišlo?</h2><p class="note" style="margin:0">Vyber schválený nákup, položky se předvyplní. Nebo naskladni bez objednávky, třeba nákup na trhu nebo dar.</p>
+    <div class="list">${open.map(q=>`<div class="li">${av(q.by)}<div class="grow"><h3>${q.note}</h3><div class="meta">${STAFF[q.by].n} · ${DEPTN[q.dept]} · ${q.items.map(i=>`${i[1]}× ${i[0]}`).join(', ')}</div></div><span class="pill ${ST[q.st][1]}">${ST[q.st][0]}</span><button class="btn sm pri" data-rcvsrc="${q.id}">Naskladnit</button></div>`).join('')||'<div class="empty">Žádný schválený nákup nečeká na naskladnění</div>'}</div>
+    <button class="btn" data-rcvsrc="none">Naskladnit bez objednávky</button>`:
+    `<div class="card-h"><h2>Příjemka${src?` · ${src.note}`:' bez objednávky'}</h2><button class="btn sm" data-act="rcvCancel">Zrušit</button></div>
+    <label class="note" style="display:flex;flex-direction:column;gap:4px;font-weight:600">Dodavatel<input data-rcvsup="1" value="${esc(r.sup)}" placeholder="Např. Frutas del Este, Ferretería Higüey"></label>
+    <div class="tbl-wrap"><table><thead><tr><th>Položka</th><th class="r">Objednáno</th><th class="r">Přišlo</th><th class="r">Cena / jedn.</th><th>Místo</th><th>Šarže a expirace</th><th></th></tr></thead><tbody>
+    ${r.lines.map((l,n)=>{const i=item(l.item);const short=l.ordered!=null&&+l.qty<l.ordered;return `<tr>
+      <td>${r.src?`<b style="color:var(--ink)">${i.name}</b>`:`<select data-rf="${n}:item" aria-label="Položka">${items.map(x=>`<option value="${x.id}" ${x.id===l.item?'selected':''}>${x.name}</option>`).join('')}</select>`}<div class="note">${i.unit}</div></td>
+      <td class="r">${l.ordered!=null?fq(l.ordered):''}</td>
+      <td class="r"><input data-rf="${n}:qty" type="number" min="0" step="any" value="${l.qty}" style="width:84px;${short?'border-color:var(--gold)':''}" aria-label="Přišlo"></td>
+      <td class="r"><input data-rf="${n}:price" type="number" min="0" step="0.01" value="${l.price??''}" style="width:90px" aria-label="Cena"></td>
+      <td><select data-rf="${n}:loc" aria-label="Místo">${Object.entries(LOCS).map(([k,v])=>`<option value="${k}" ${l.loc===k?'selected':''}>${v}</option>`).join('')}</select></td>
+      <td>${i.batches?`<div class="row" style="flex-wrap:nowrap"><input data-rf="${n}:batch" value="${esc(l.batch)}" placeholder="šarže" style="width:90px" aria-label="Šarže"><input data-rf="${n}:exp" type="date" value="${l.exp}" aria-label="Expirace"></div>`:'<span class="note">nesleduje se</span>'}</td>
+      <td>${!r.src&&r.lines.length>1?`<button class="btn sm" data-rcvdel="${n}" aria-label="Odebrat řádek">×</button>`:''}</td></tr>`}).join('')}
+    </tbody></table></div>
+    ${!r.src?`<button class="btn sm" data-act="rcvAdd" style="align-self:flex-start">+ Další položka</button>`:''}
+    <div class="row"><button class="btn ${r.photo?'ok':''}" data-act="rcvPhoto">${r.photo?'✓ Dodací list vyfocený':'📷 Vyfotit dodací list nebo účtenku'}</button></div>
+    <div class="total"><span>Celkem podle cen</span><b id="rcvTotal">${usd(Math.round(total*100)/100)}</b></div>
+    <button class="btn pri" data-act="rcvConfirm">Potvrdit naskladnění</button>
+    <p class="note" style="margin:0">Potvrzení navýší zásoby, přepočítá nákupní cenu, ${src?'označí nákup jako naskladněný ':''}a zapíše výdaj do financí. Když přijde míň, než bylo objednáno, dostane ředitel upozornění.</p>`}
+  </section>
+  <section class="card"><h2>Poslední příjemky</h2><div class="list">${S.receipts.slice(0,8).map(x=>`<div class="li"><div class="grow"><h3>${x.sup}</h3><div class="meta">${x.d} · ${STAFF[x.by].n} · ${x.init?'všechny položky':x.lines.length+' položek'}${x.total?' · '+usd(x.total):''}</div></div>${x.short?`<span class="pill warn">${x.short}× méně</span>`:''}${x.photo?'<span class="pill">📷</span>':''}<span class="note code">${x.id}</span></div>`).join('')}</div></section>
+  </div>`;
+}
+function rcvConfirm(){
+  const r=S.rcv;if(!r)return;
+  const lines=r.lines.filter(l=>+l.qty>0);
+  if(!lines.length){toast('Zadej, kolik čeho přišlo');return}
+  const miss=lines.find(l=>item(l.item).batches&&(!l.batch||!l.exp));
+  if(miss){toast(`${item(miss.item).name}: doplň šarži a expiraci`);return}
+  const id='P-'+String(S.receipts.length+1).padStart(4,'0');
+  let total=0,short=0;
+  lines.forEach(l=>{
+    const i=item(l.item),q=+l.qty,p=l.price===''||l.price==null?null:+l.price;
+    const have=Math.max(0,onHand(i.id));
+    if(p!=null){i.cost=i.cost==null||have<=0?p:Math.round((i.cost*have+p*q)/(have+q)*100)/100;total+=p*q}
+    addMove(i.id,q,'receipt',l.loc,{note:r.sup||'Naskladnění',batch:i.batches?l.batch:null,exp:i.batches?l.exp:null,ref:id});
+    if(l.ordered!=null&&q<l.ordered)short++;
+  });
+  r.lines.filter(l=>l.ordered!=null&&!(+l.qty>0)).forEach(()=>short++);
+  total=Math.round(total*100)/100;
+  S.receipts.unshift({id,d:TD,by:S.role,sup:r.sup||(r.src?'Nákup':'Bez objednávky'),src:r.src,lines,photo:r.photo,total,short});
+  if(r.src){const q=S.req.find(x=>x.id==r.src);if(q)q.st='naskladneno'}
+  S.rcv=null;render();
+  toast(short?`Naskladněno, ale ${short} ${short===1?'položka dorazila':'položky dorazily'} v menším množství. Šimon dostal upozornění.`:`Naskladněno ${lines.length} ${lines.length===1?'položka':lines.length<5?'položky':'položek'}, příjemka ${id}`);
+}
+
+function skVydej(){
+  const items=myItems();
+  const s=S.iss;
+  if(!s.item||!item(s.item)||!items.some(i=>i.id===s.item))s.item=items[0]&&items[0].id;
+  const i=item(s.item);
+  const fromOpts=locsOf(s.item).filter(([,q])=>q>0);
+  if(!fromOpts.some(([l])=>l===s.from))s.from=fromOpts.length?fromOpts[0][0]:i.loc;
+  if(!s.to||s.to===s.from)s.to=i.loc!==s.from?i.loc:Object.keys(LOCS).find(l=>l!==s.from);
+  const types=[['issue','Výdej'],['transfer','Převod'],['writeoff','Odpis']];
+  const recent=byNewest(S.moves.filter(m=>['issue','transfer','writeoff'].includes(m.kind)&&items.some(x=>x.id===m.item))).filter((m,n,a)=>!(m.kind==='transfer'&&m.qty>0&&a[n-1]&&a[n-1].kind==='transfer'&&a[n-1].item===m.item)).slice(0,12);
+  const bts=i.batches?batchesOf(i.id):[];
+  return `<div class="pos">
+  <section class="card"><div class="seg" role="group" aria-label="Typ pohybu">${types.map(([k,l])=>`<button aria-pressed="${s.type===k}" data-isstype="${k}">${l}</button>`).join('')}</div>
+    <p class="note" style="margin:0">${s.type==='issue'?'Materiál nebo léky spotřebované mimo krmení a bar, třeba na opravu nebo ošetření. Krmení a prodej se odečítají samy.':s.type==='transfer'?'Přesun mezi místy, třeba pivo z hlavního skladu na bar. Celkový stav se nemění.':'Prošlé, poškozené nebo uhynulé zboží. Odpis vidí ředitel ve výkazu.'}</p>
+    <form class="form" id="issueForm" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      <label style="grid-column:span 2">Položka<select data-iss="item">${items.map(x=>`<option value="${x.id}" ${x.id===s.item?'selected':''}>${x.name} (${fq(onHand(x.id))} ${x.unit})</option>`).join('')}</select></label>
+      <label>${s.type==='transfer'?'Z místa':'Odkud'}<select data-iss="from">${(fromOpts.length?fromOpts:[[i.loc,0]]).map(([l,q])=>`<option value="${l}" ${l===s.from?'selected':''}>${LOCS[l]} (${fq(q)})</option>`).join('')}</select></label>
+      ${s.type==='transfer'?`<label>Na místo<select data-iss="to">${Object.entries(LOCS).filter(([k])=>k!==s.from).map(([k,v])=>`<option value="${k}" ${k===s.to?'selected':''}>${v}</option>`).join('')}</select></label>`:
+        bts.length?`<label>Šarže<select id="isBatch">${bts.map(b=>`<option value="${b.batch}" ${b.batch===s.batch?'selected':''}>${b.batch} · ${fq(b.qty)}${b.exp?' · exp. '+czDate(b.exp):''}</option>`).join('')}</select></label>`:'<span></span>'}
+      <label>Množství (${i.unit})<input id="isQty" type="number" min="0" step="any" required></label>
+      ${s.type==='issue'?`<label>K úkolu<select id="isTask"><option value="">bez úkolu</option>${S.tasks.filter(t=>t.col<2).map(t=>`<option value="${t.id}">${esc(t.t)}</option>`).join('')}</select></label>`:'<span></span>'}
+      <label style="grid-column:span 2">${s.type==='writeoff'?'Důvod odpisu':'Poznámka'}<input id="isNote" placeholder="${s.type==='writeoff'?'Např. prošlá expirace, plíseň':'Např. oprava plotu u opic'}" ${s.type==='writeoff'?'required':''}></label>
+      <label style="grid-column:span 2"><button class="btn pri" type="submit">${s.type==='issue'?'Vydat ze skladu':s.type==='transfer'?'Převést':'Odepsat'}</button></label>
+    </form>
+  </section>
+  <section class="card"><h2>Poslední výdeje, převody a odpisy</h2><div class="list">${recent.map(m=>{const it=item(m.item);return `<div class="li"><span class="pill ${MKIND[m.kind][1]}">${MKIND[m.kind][0]}</span><div class="grow"><h3>${it.name}</h3><div class="meta">${m.d} · ${STAFF[m.by]?STAFF[m.by].n:''} · ${m.kind==='transfer'?'z '+LOCS[m.loc]:LOCS[m.loc]}${m.note?' · '+esc(m.note):''}</div></div><b class="num">${fq(Math.abs(m.qty))} ${it.unit}</b></div>`}).join('')||'<div class="empty">Zatím nic</div>'}</div></section>
+  </div>`;
+}
+function issueSubmit(){
+  const s=S.iss,i=item(s.item),q=+$('#isQty').value,note=$('#isNote').value.trim();
+  if(!(q>0)){toast('Zadej množství');return}
+  const avail=onHand(i.id,s.from);
+  if(q>avail+1e-9){toast(`${LOCS[s.from]}: na skladě jen ${fq(avail)} ${i.unit}`);return}
+  if(s.type==='transfer'){addMove(i.id,-q,'transfer',s.from,{note:note||'Převod na '+LOCS[s.to]});addMove(i.id,q,'transfer',s.to,{note:note||'Převod z '+LOCS[s.from]});toast(`Převedeno ${fq(q)} ${i.unit} na ${LOCS[s.to]}`)}
+  else{
+    const bsel=document.getElementById('isBatch');const task=document.getElementById('isTask');
+    const tn=task&&task.value?S.tasks.find(t=>t.id==task.value):null;
+    addMove(i.id,-q,s.type,s.from,{note:[note,tn?'úkol: '+tn.t:''].filter(Boolean).join(' · '),batch:bsel?bsel.value:undefined});
+    toast(s.type==='issue'?`Vydáno ${fq(q)} ${i.unit}`:`Odepsáno ${fq(q)} ${i.unit}`);
+  }
+  s.batch=null;render();
+}
+
+function skInventura(){
+  const loc=S.invLoc;
+  const items=myItems().filter(i=>i.loc===loc||Math.abs(onHand(i.id,loc))>1e-9);
+  return `<div class="pos"><section class="card"><div class="card-h"><h2>Inventura</h2><select id="invLoc" aria-label="Místo">${Object.entries(LOCS).map(([k,v])=>`<option value="${k}" ${k===loc?'selected':''}>${v}</option>`).join('')}</select></div>
+  <p class="note" style="margin:0">Napočítej, co skutečně leží na místě. Rozdíly proti systému se zapíšou jako pohyby, nic se nepřepisuje.</p>
+  ${items.length?`<div class="tbl-wrap"><table><thead><tr><th>Položka</th><th class="r">V systému</th><th class="r">Napočítáno</th><th class="r">Rozdíl</th><th>Poznámka</th></tr></thead><tbody>
+  ${items.map(i=>{const sys=onHand(i.id,loc);return `<tr><td><b style="color:var(--ink)">${i.name}</b><div class="note">${i.unit}</div></td><td class="r num">${fq(sys)}</td>
+    <td class="r"><input data-inv="${i.id}" data-sys="${sys}" type="number" min="0" step="any" value="${Math.round(sys*1000)/1000}" style="width:90px" aria-label="Napočítáno ${i.name}"></td>
+    <td class="r num" id="invd_${i.id}">0</td><td><input data-invn="${i.id}" placeholder="důvod rozdílu" style="width:100%"></td></tr>`}).join('')}
+  </tbody></table></div><button class="btn pri" data-act="invSave">Uložit inventuru</button>`:'<div class="empty">Na tomhle místě nic není</div>'}
+  </section>
+  <section class="card"><h2>Poslední inventury</h2><div class="list">${S.invs.map(x=>`<div class="li"><div class="grow"><h3>${LOCS[x.loc]}</h3><div class="meta">${x.d} · ${STAFF[x.by].n}</div></div><span class="pill ${x.diffs?'warn':'ok'}">${x.diffs?x.diffs+' rozdílů':'sedí'}</span></div>`).join('')||'<div class="empty">Zatím žádná</div>'}</div></section></div>`;
+}
+function invSave(){
+  let diffs=0;
+  document.querySelectorAll('[data-inv]').forEach(el=>{
+    const id=el.dataset.inv,sys=+el.dataset.sys,c=+el.value;
+    if(el.value!==''&&Math.abs(c-sys)>1e-9){const n=document.querySelector(`[data-invn="${id}"]`);addMove(id,Math.round((c-sys)*1000)/1000,'inventory',S.invLoc,{note:'Inventura'+(n&&n.value?' · '+n.value:'')});diffs++}
+  });
+  S.invs.unshift({d:TD,loc:S.invLoc,by:S.role,diffs});render();
+  toast(diffs?`Inventura uložena, ${diffs} ${diffs===1?'rozdíl zapsán':'rozdíly zapsány'}`:'Inventura uložena, všechno sedí');
+}
+
+function skPohyby(){
+  const items=myItems();
+  const kinds=[['all','Vše']].concat(Object.entries(MKIND).map(([k,v])=>[k,v[0]]));
+  const list=byNewest(S.moves.filter(m=>items.some(i=>i.id===m.item)&&(S.mkind==='all'||m.kind===S.mkind))).slice(0,80);
+  return `<section class="card"><div class="tabs">${kinds.map(([k,l])=>`<button class="tab" aria-pressed="${S.mkind===k}" data-mkind="${k}">${l}</button>`).join('')}</div>
+  <div class="tbl-wrap"><table><thead><tr><th>Kdy</th><th>Položka</th><th>Pohyb</th><th class="r">Množství</th><th>Kde</th><th>Kdo</th><th>Poznámka</th></tr></thead><tbody>
+  ${list.map(m=>{const i=item(m.item);return `<tr><td class="note">${m.d} ${m.t}</td><td><button class="btn sm" data-card="${i.id}" style="border:0;background:none;padding:0;text-align:left">${i.name}</button></td><td><span class="pill ${MKIND[m.kind][1]}">${MKIND[m.kind][0]}</span></td><td class="r num" style="color:${m.qty>0?'var(--palm)':'var(--ink)'}">${m.qty>0?'+':''}${fq(m.qty)} ${i.unit}</td><td>${LOCS[m.loc]||''}</td><td>${STAFF[m.by]?STAFF[m.by].n:''}</td><td class="note">${esc(m.note)}${m.batch?' · '+m.batch:''}${m.ref?' · '+m.ref:''}</td></tr>`}).join('')||'<tr><td colspan="7"><div class="empty">Žádné pohyby</div></td></tr>'}
+  </tbody></table></div><p class="note" style="margin:0">Každé číslo ve skladu jde dohledat až k pohybu, který ho změnil. Zobrazuje se posledních 80.</p></section>`;
+}
+
+function skKatalog(){
+  const e=S.catEdit?item(S.catEdit):null;
+  return `<section class="card" style="margin-bottom:16px"><div class="card-h"><h2>${e?'Upravit položku':'Nová položka'}</h2>${e?'<button class="btn sm" data-act="catNew">Zrušit úpravu</button>':''}</div>
+  <form class="form" id="catForm">
+    <label style="grid-column:span 2">Název<input id="cN" required value="${e?esc(e.name):''}" placeholder="Např. Mango, Amoxicilin 250 mg"></label>
+    <label>Kategorie<select id="cC">${Object.entries(ICAT).map(([k,v])=>`<option value="${k}" ${e&&e.cat===k?'selected':''}>${v}</option>`).join('')}</select></label>
+    <label>Jednotka<input id="cU" required value="${e?esc(e.unit):''}" placeholder="kg, ks, bal, l"></label>
+    <label>Minimální zásoba<input id="cM" type="number" min="0" step="any" value="${e?e.min:''}" required></label>
+    <label>Nákupní cena (USD)<input id="cP" type="number" min="0" step="0.01" value="${e&&e.cost!=null?e.cost:''}"></label>
+    <label>Výchozí místo<select id="cL">${Object.entries(LOCS).map(([k,v])=>`<option value="${k}" ${e&&e.loc===k?'selected':''}>${v}</option>`).join('')}</select></label>
+    <label>Denní spotřeba (krmiva)<input id="cD" type="number" min="0" step="any" value="${e&&e.daily?e.daily:''}"></label>
+    <label>Prodejní cena (bar, shop)<input id="cS" type="number" min="0" step="0.01" value="${e&&e.price?e.price:''}"></label>
+    <label style="flex-direction:row;align-items:center;gap:8px"><input id="cB" type="checkbox" ${e&&e.batches?'checked':''} style="width:auto"> Sledovat šarže a expiraci</label>
+    <label style="grid-column:span 2"><span>&nbsp;</span><button class="btn pri" type="submit">${e?'Uložit změny':'Přidat do katalogu'}</button></label>
+  </form></section>
+  <section class="card"><h2>Katalog · ${S.items.length} položek</h2><div class="tbl-wrap"><table><thead><tr><th>Položka</th><th>Kategorie</th><th>Jednotka</th><th class="r">Minimum</th><th class="r">Cena</th><th>Místo</th><th>Šarže</th><th></th></tr></thead><tbody>
+  ${S.items.map(i=>`<tr style="${i.active===false?'opacity:.5':''}"><td><b style="color:var(--ink)">${i.name}</b></td><td>${ICAT[i.cat]}</td><td>${i.unit}</td><td class="r">${fq(i.min)}</td><td class="r">${i.cost!=null?usd(i.cost):''}</td><td>${LOCS[i.loc]}</td><td>${i.batches?'ano':''}</td><td><button class="btn sm" data-catedit="${i.id}">Upravit</button></td></tr>`).join('')}
+  </tbody></table></div><p class="note" style="margin:0">Hromadně, třeba celý seznam krmiv z Excelu, to nahraju do databáze já. Tady se přidávají jednotlivé položky.</p></section>`;
+}
+function catSubmit(){
+  const v=id=>document.getElementById(id).value;
+  const data={name:v('cN').trim(),cat:v('cC'),unit:v('cU').trim(),min:+v('cM')||0,cost:v('cP')===''?null:+v('cP'),loc:v('cL'),daily:+v('cD')||null,price:+v('cS')||null,batches:document.getElementById('cB').checked};
+  if(!data.name||!data.unit){toast('Doplň název a jednotku');return}
+  if(S.catEdit){Object.assign(item(S.catEdit),data);S.catEdit=null;toast('Položka upravena')}
+  else{if(S.items.some(i=>i.name.toLowerCase()===data.name.toLowerCase())){toast('Tahle položka už v katalogu je');return}
+    S.items.push({id:'n'+Date.now(),active:true,...data});toast('Přidáno do katalogu')}
+  render();
+}
+function toBasket(id){
+  const i=item(id);const dp=CATDEPT[i.cat];
+  const p=catOf(dp).find(c=>c[3]===id);
+  const qty=Math.max(1,Math.ceil((i.daily?i.daily*7:i.min*2)-onHand(id)));
+  keepNote();
+  const b=S.basket.find(x=>x[0]===i.name);b?b[1]+=qty:S.basket.push([i.name,qty,p?p[2]||0:0,dp]);
+  S.basketNote=S.basketNote||'Doplnění zásob, nízký stav';S.dept=dp;S.view='nakupy';$('#layer').innerHTML='';render();window.scrollTo(0,0);
+  toast(`${i.name}: ${qty} ${i.unit} v košíku`);
+}
+
+const ST={ceka:['Čeká na schválení','warn'],schvaleno:['Schváleno, nakoupit','ok'],koupeno:['Koupeno, naskladnit','warn'],naskladneno:['Naskladněno','ok'],vraceno:['Vráceno k úpravě','bad'],zamitnuto:['Zamítnuto','bad']};
 
 /* rezervační systém: termíny a kapacity */
 const DAYS=[['So','19. 12.'],['Ne','20. 12.'],['Po','21. 12.'],['Út','22. 12.'],['St','23. 12.'],['Čt','24. 12.'],['Pá','25. 12.']];
@@ -386,7 +690,8 @@ const S={
     {g:'Tukani',n:3,t:'14:00',f:'ovoce, granule',w:'miguel',ok:false},
     {g:'Ary zelenokřídlé',n:6,t:'16:30',f:'ovoce',w:'miguel',ok:false}
   ],
-  stock:[['Banány',2,'chov','Banány, trs 18 kg'],['Cvrčci živí',1,'chov','Cvrčci živí, 500 ks'],['Papája',4,'chov','Papája'],['Granule pro papoušky',12,'chov','Granule pro papoušky 10 kg'],['Krmivo pro opice',9,'chov','Krmivo pro opice 5 kg']],
+  items:SEED_ITEMS, moves:[], receipts:[{id:'P-0002',d:'16. 12.',by:'yasmin',sup:'Frutas del Este',src:null,lines:[1,2],photo:true,total:72,short:0},{id:'P-0001',d:'1. 12.',by:'simon',sup:'Počáteční stav skladu',src:null,lines:[],photo:false,total:0,short:0,init:true}],
+  invs:[{d:'15. 12.',loc:'krm',by:'yasmin',diffs:1}], stab:'zasoby', scat:'all', sloc:'all', mkind:'all', rcv:null, iss:{type:'issue',item:null,from:null,to:null,batch:null}, invLoc:'krm', catEdit:null,
   health:[
     {d:'18. 12.',a:'Saimiri „Coco“',t:'Lehký průjem, upravena dávka ovoce, sledovat 3 dny.',w:'ramon',st:'sledovat'},
     {d:'16. 12.',a:'Leguán „Toño“',t:'Svlékání kůže v pořádku, vážení 4,2 kg.',w:'yasmin',st:'ok'},
@@ -421,6 +726,7 @@ const CAP=40;
 /* sdílená data s webem (reservar.html): objednávky a nastavení v prohlížeči */
 const DS=window.TotemDemo;
 if(DS){const st=DS.settings();S.mode=st.mode;S.closed=st.closed;S.online=DS.load();DS.expire(S.online)}
+seedStock();
 function persist(){if(DS){DS.save(S.online);DS.saveSettings({mode:S.mode,closed:S.closed})}}
 
 /* rezervace: kapacity, online vstupenky */
@@ -455,11 +761,12 @@ function qrSvg(t){
   return `<svg viewBox="-1 -1 ${n+2} ${n+2}" fill="#2B1A15" role="img" aria-label="QR kód (náhled)">${r}</svg>`;
 }
 
-function toast(m){const l=$('#layer');const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=m;l.appendChild(d);setTimeout(()=>d.remove(),2400)}
+function toast(m){document.querySelectorAll('.toast').forEach(x=>x.remove());const l=$('#layer');const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=m;l.appendChild(d);setTimeout(()=>d.remove(),2400)}
 
 function nav(){
   $('#nav').innerHTML=ROLES[S.role].map(k=>{
-    const b=k==='nakupy'&&S.role==='simon'&&pending()?`<span class="badge">${pending()}</span>`:VIEWS[k].nw?'<span class="new">nové</span>':'';
+    const sk=k==='sklad'?skNeedsBadge():0;
+    const b=sk?`<span class="badge">${sk}</span>`:k==='nakupy'&&S.role==='simon'&&pending()?`<span class="badge">${pending()}</span>`:VIEWS[k].nw?'<span class="new">nové</span>':'';
     return `<button data-go="${k}" ${S.view===k?'aria-current="page"':''}><svg viewBox="0 0 24 24">${VIEWS[k].i}</svg>${VIEWS[k].t}${b}</button>`}).join('');
 }
 function head(eyebrow,title,sub,right=''){return `<span class="demo"><i></i>Prototyp · ukázková data</span><div class="head"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${sub?`<p class="sub">${sub}</p>`:''}</div><div class="row">${right}</div></div>`}
@@ -475,7 +782,7 @@ function vPrehled(){
   const late=S.tasks.filter(t=>t.late&&t.col<2).length;
   const fed=S.feed.filter(f=>f.ok).length;
   const onShift=Object.entries(S.shifts).filter(([k,v])=>v[5]!=='V');
-  const low=S.stock.filter(s=>s[1]<=2);
+  const low=S.items.filter(isLow), exps=S.items.flatMap(i=>batchesOf(i.id).filter(b=>b.exp&&daysTo(b.exp)<=30).map(b=>({...b,item:i})));
   return head(TODAY,'Dobré ráno, Šimone','Park otevřen 9:00 až 17:00, dva okruhy s průvodcem.',`<button class="btn pri" data-act="report">Týdenní report pro Zoo Kontakt</button>`)+
   `<div class="stats">
     <div class="stat"><span>Hosté dnes</span><b>${guests} <small>/ ${CAP*2}</small></b><small>agentury ${guests-otPax} · web ${otPax}</small></div>
@@ -498,7 +805,8 @@ function vPrehled(){
       <section class="card"><h2>Hoří</h2><div class="list">
         ${S.req.filter(r=>r.st==='ceka').map(r=>`<div class="li"><span class="pill warn">Nákup</span><div class="grow"><h3>${r.note}</h3><div class="meta">${STAFF[r.by].n} · ${usd(reqSum(r))}</div></div><button class="btn sm" data-go="nakupy">Otevřít</button></div>`).join('')}
         ${S.tasks.filter(t=>t.late&&t.col<2).map(t=>`<div class="li"><span class="pill bad">Po termínu</span><div class="grow"><h3>${t.t}</h3><div class="meta">${STAFF[t.w].n} · termín ${t.due}</div></div></div>`).join('')}
-        ${low.map(s=>`<div class="li"><span class="pill bad">Sklad</span><div class="grow"><h3>${s[0]}</h3><div class="meta">zásoba na ${s[1]} ${s[1]===1?'den':'dny'}</div></div></div>`).join('')}
+        ${low.length?`<div class="li"><span class="pill bad">Sklad</span><div class="grow"><h3>${low.length} ${low.length<5?'položky':'položek'} pod minimem</h3><div class="meta">${low.slice(0,4).map(i=>i.name.split(',')[0]).join(', ')}${low.length>4?'…':''}</div></div><button class="btn sm" data-go="sklad">Sklad</button></div>`:''}
+        ${exps.map(b=>`<div class="li"><span class="pill warn">Expirace</span><div class="grow"><h3>${b.item.name}</h3><div class="meta">šarže ${b.batch} do ${czDate(b.exp)}</div></div><button class="btn sm" data-go="sklad">Sklad</button></div>`).join('')}
         ${S.swap.open?`<div class="li"><span class="pill gold">Směna</span><div class="grow"><h3>${STAFF[S.swap.from].n} chce prohodit neděli s ${STAFF[S.swap.to].n}</h3></div><button class="btn sm" data-go="smeny">Řešit</button></div>`:''}
         ${!pending()&&!late&&!low.length&&!S.swap.open?'<div class="empty">Nic nehoří, dej si kafe ☕</div>':''}
       </div></section>
@@ -747,7 +1055,7 @@ function vZvirata(){
   ${S.feed.map((f,i)=>`<div class="li"><button class="check" aria-pressed="${f.ok}" aria-label="Nakrmeno: ${f.g} ${f.t}" data-feed="${i}"></button><b class="num" style="width:44px;color:var(--ink)">${f.t}</b><div class="grow"><h3 class="${f.ok?'done-t':''}">${f.g} <span class="note">· ${f.n} ks</span></h3><div class="meta">${f.f}</div></div>${av(f.w)}</div>`).join('')}
   </div></section>
   <div class="grid">
-    <section class="card"><h2>Sklad krmiva</h2><div class="list">${S.stock.map((s,i)=>`<div class="li"><div class="grow"><h3>${s[0]}</h3><div class="bar ${s[1]<=2?'warn':''}" style="margin-top:6px"><i style="width:${Math.min(100,s[1]/14*100)}%"></i></div></div><span class="pill ${s[1]<=1?'bad':s[1]<=2?'warn':''} num">${s[1]} ${s[1]===1?'den':s[1]<5?'dny':'dní'}</span>${s[1]<=2?`<button class="btn sm" data-restock="${i}">Do košíku</button>`:''}</div>`).join('')}</div></section>
+    <section class="card"><div class="card-h"><h2>Sklad krmiva</h2><button class="btn sm" data-go="sklad">Celý sklad</button></div><div class="list">${S.items.filter(i=>i.cat==='feed').map(i=>{const dl=daysLeft(i);return `<div class="li"><div class="grow"><h3>${i.name}</h3><div class="bar ${dl<=2?'warn':''}" style="margin-top:6px"><i style="width:${Math.min(100,dl/14*100)}%"></i></div></div><span class="pill ${dl<=1?'bad':dl<=2?'warn':''} num">${dl} ${dl===1?'den':dl>1&&dl<5?'dny':'dní'}</span>${dl<=2?`<button class="btn sm" data-tobasket="${i.id}">Do košíku</button>`:''}</div>`}).join('')}</div><p class="note" style="margin:0">Na kolik dní krmivo vystačí podle denní spotřeby. V ostré verzi odklik krmení rovnou odečte dávku ze skladu.</p></section>
     <section class="card"><h2>Zdravotní deník</h2><div class="list">${S.health.map(h=>`<div class="li"><div class="grow"><h3>${h.a}</h3><div class="meta">${h.t}</div><div class="meta">${h.d} · ${STAFF[h.w].n}</div></div><span class="pill ${h.st==='ok'?'ok':'warn'}">${h.st==='ok'?'v pořádku':'sledovat'}</span></div>`).join('')}</div><p class="note">Historii jde vyexportovat pro úřady jedním klikem.</p></section>
   </div></div>`;
 }
@@ -758,12 +1066,12 @@ function vNakupy(){
   const dept=boss?S.dept:DEPT[S.role];
   const bsum=S.basket.reduce((s,i)=>s+i[1]*i[2],0);
   const queue=boss?S.req:S.req.filter(r=>r.by===S.role);
-  const order=['ceka','schvaleno','vraceno','koupeno','zamitnuto'];
+  const order=['ceka','schvaleno','koupeno','vraceno','naskladneno','zamitnuto'];
   const sorted=[...queue].sort((a,b)=>order.indexOf(a.st)-order.indexOf(b.st));
   return head(TODAY,'Nákupy',boss?'Košíky od údržby, veterináře a chovu chodí sem ke schválení. Po nákupu se zapíšou do výdajů.':'Naklikej, co potřebuješ, a pošli Šimonovi ke schválení.')+
   `<div class="pos">
     <section class="card"><div class="card-h"><h2>Katalog · ${DEPTN[dept]}</h2>${boss?`<div class="tabs">${Object.keys(DEPTN).map(d=>`<button class="tab" aria-pressed="${d===dept}" data-dept="${d}">${DEPTN[d]}</button>`).join('')}</div>`:''}</div>
-      <div class="prods">${CAT[dept].map((p,i)=>`<button class="prod" data-add="${dept}:${i}"><b>${p[0]}</b><span>za ${p[1]}</span><em>${usd(p[2])}</em></button>`).join('')}</div>
+      <div class="prods">${CAT[dept].map((p,i)=>`<button class="prod" data-add="${dept}:${i}"><b>${p[0]}</b><span>za ${p[1]}</span><em>${p[2]!=null?usd(p[2]):'cena?'}</em></button>`).join('')}</div>
       <p class="note">Ceny jsou orientační, skutečnou částku doplní ten, kdo nakupuje.</p>
     </section>
     <section class="card"><h2>Můj košík</h2>
@@ -777,7 +1085,7 @@ function vNakupy(){
   <section class="card" style="margin-top:16px"><h2>${boss?'Žádosti o nákup':'Moje žádosti'}</h2><div class="list">
   ${sorted.length?sorted.map(r=>`<div class="li" style="align-items:flex-start">${av(r.by)}<div class="grow"><div class="row"><h3>${r.note}</h3>${r.urg==='Spěchá'?'<span class="pill bad">Spěchá</span>':''}</div><div class="meta">${STAFF[r.by].n} · ${DEPTN[r.dept]} · ${r.d}</div><div class="meta">${r.items.map(i=>`${i[1]}× ${i[0]}`).join(', ')}</div></div><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><b class="num" style="color:var(--ink)">${usd(reqSum(r))}</b><span class="pill ${ST[r.st][1]}">${ST[r.st][0]}</span>
     ${boss&&r.st==='ceka'?`<div class="row"><button class="btn ok sm" data-rq="${r.id}:schvaleno">Schválit</button><button class="btn sm" data-rq="${r.id}:vraceno">Vrátit</button><button class="btn sm" data-rq="${r.id}:zamitnuto">Zamítnout</button></div>`:''}
-    ${r.st==='schvaleno'?`<button class="btn sm" data-rq="${r.id}:koupeno">Koupeno, zapsat výdaj</button>`:''}
+    ${['schvaleno','koupeno'].includes(r.st)?`<div class="row">${r.st==='schvaleno'?`<button class="btn sm" data-rq="${r.id}:koupeno">Koupeno</button>`:''}<button class="btn sm pri" data-rcvsrc="${r.id}">Naskladnit</button></div>`:''}
   </div></div>`).join(''):'<div class="empty">Zatím žádné žádosti</div>'}
   </div></section>`;
 }
@@ -809,7 +1117,7 @@ function vPokladna(){
 /* ---------- FINANCE ---------- */
 function vFinance(){
   const todayNet=S.book.reduce((s,b)=>s+net(b),0)+salesSum()+onNetToday();
-  const bought=S.req.filter(r=>r.st==='koupeno');
+  const bought=S.req.filter(r=>['koupeno','naskladneno'].includes(r.st));
   const todayExp=bought.filter(r=>r.d==='19. 12.').reduce((s,r)=>s+reqSum(r),0)+140;
   const days=['Ne 13.','Po 14.','Út 15.','St 16.','Čt 17.','Pá 18.','So 19.'];
   const inc=[1180,1420,980,1650,1310,2040,Math.round(todayNet)];
@@ -822,7 +1130,7 @@ function vFinance(){
     ${inc.map((v,i)=>`<rect x="${i*gap+gap/2-bw-2}" y="${y(v)}" width="${bw}" height="${H-y(v)}" rx="3" fill="var(--palm)"/><rect x="${i*gap+gap/2+2}" y="${y(exp[i])}" width="${bw}" height="${H-y(exp[i])}" rx="3" fill="var(--gold)"/><text x="${i*gap+gap/2}" y="${H+18}" text-anchor="middle" ${i===6?'style="fill:var(--ink);font-weight:700"':''}>${days[i]}</text>`).join('')}
   </svg>`;
   const recv=[['Miro Travel','týdně','14.–20. 12.',1240,'otevřené'],['Nexus Tours','měsíčně','prosinec',2980,'otevřené'],['Amstar','měsíčně','prosinec',1515,'otevřené'],['Hotel v Uvero Alto','týdně','7.–13. 12.',410,'po splatnosti']];
-  const exps=[...bought.map(r=>[r.d,r.note,DEPTN[r.dept],reqSum(r)]),['18. 12.','Elektřina, listopad','Energie',612],['17. 12.','Palivo pro pick-up','Doprava',85],['15. 12.','Zálohy na mzdy','Mzdy',3200]];
+  const exps=[...S.receipts.filter(r=>!r.src&&!r.init&&r.d===TD&&r.total).map(r=>[r.d,'Naskladnění: '+r.sup,'Sklad',r.total]),...bought.map(r=>[r.d,r.note,DEPTN[r.dept],reqSum(r)]),['18. 12.','Elektřina, listopad','Energie',612],['17. 12.','Palivo pro pick-up','Doprava',85],['15. 12.','Zálohy na mzdy','Mzdy',3200]];
   return head('Prosinec 2026','Finance','Příjmy ze vstupů se počítají samy z odbavených rezervací a online vstupenek, výdaje ze schválených nákupů.')+
   `<div class="stats">
     <div class="stat"><span>Příjmy prosinec</span><b>${usd(17280+Math.round(todayNet))}</b><small>plán 28 000 USD</small></div>
@@ -848,7 +1156,7 @@ function vPartneri(){
   </tbody></table></div><p class="note">Do budoucna tady může být i partnerský portál, kde si agentury samy zarezervují okruh ze stejné kapacity jako web.</p></section>`;
 }
 
-const RENDER={prehled:vPrehled,rezervace:vRezervace,web:vWeb,vstup:vVstup,smeny:vSmeny,ukoly:vUkoly,zvirata:vZvirata,nakupy:vNakupy,pokladna:vPokladna,finance:vFinance,partneri:vPartneri};
+const RENDER={prehled:vPrehled,rezervace:vRezervace,web:vWeb,vstup:vVstup,smeny:vSmeny,ukoly:vUkoly,zvirata:vZvirata,sklad:vSklad,nakupy:vNakupy,pokladna:vPokladna,finance:vFinance,partneri:vPartneri};
 function render(keepCam){persist();if(!keepCam)stopCam();if(!ROLES[S.role].includes(S.view))S.view='prehled';nav();$('#main').innerHTML=RENDER[S.view]();}
 
 function reportText(){
@@ -882,7 +1190,6 @@ document.addEventListener('click',e=>{
   if(d.move){const x=S.tasks.find(x=>x.id==d.move);x.col++;render();toast(x.col===2?'Úkol hotový':'Úkol rozpracovaný');return}
   if(d.done){const x=S.tasks.find(x=>x.id==d.done);x.col=2;render();toast('Hotovo, díky!');return}
   if(d.feed!==undefined){const f=S.feed[d.feed];f.ok=!f.ok;render();return}
-  if(d.restock!==undefined){const s=S.stock[d.restock];const p=CAT[s[2]].find(c=>c[0]===s[3]);addBasket(p,s[2]);S.basketNote=S.basketNote||'Doplnění krmiva, nízká zásoba';S.dept=s[2];S.view='nakupy';render();toast(`${s[0]} v košíku`);return}
   if(d.dept){S.dept=d.dept;render();return}
   if(d.add){const[dp,i]=d.add.split(':');addBasket(CAT[dp][i],dp);render();return}
   if(d.q){const[i,n]=d.q.split(':').map(Number);S.basket[i][1]+=n;if(S.basket[i][1]<=0)S.basket.splice(i,1);render();return}
@@ -892,6 +1199,16 @@ document.addEventListener('click',e=>{
   if(d.sell!==undefined){const p=S.prods[S.posCat][d.sell];const c=S.cart.find(c=>c[0]===p[0]);c?c[1]++:S.cart.push([p[0],1,p[2]]);render();return}
   if(d.cq){const[i,n]=d.cq.split(':').map(Number);S.cart[i][1]+=n;if(S.cart[i][1]<=0)S.cart.splice(i,1);render();return}
   if(d.pay){S.payWith=d.pay;render();return}
+  if(d.stab){S.stab=d.stab;if(d.stab==='prijem'&&S.view!=='sklad')S.view='sklad';render();return}
+  if(d.card){skCard(d.card);return}
+  if(d.tobasket){toBasket(d.tobasket);return}
+  if(d.rcvsrc){startRcv(d.rcvsrc);return}
+  if(d.scat){S.scat=d.scat;render();return}
+  if(d.mkind){S.mkind=d.mkind;render();return}
+  if(d.isstype){S.iss.type=d.isstype;render();return}
+  if(d.rcvdel!==undefined){S.rcv.lines.splice(+d.rcvdel,1);render();return}
+  if(d.catedit){S.catEdit=d.catedit;render();window.scrollTo(0,0);return}
+  if(d.wo){const[it,b]=d.wo.split('|');S.stab='vydej';S.iss={type:'writeoff',item:it,from:null,to:null,batch:b};render();return}
   if(d.arrive){S.book.find(b=>b.id==d.arrive).st='dorazili';render();toast('Skupina odbavena');return}
   switch(d.act){
     case 'w1':keepW();S.w.step=1;render();break;
@@ -907,9 +1224,17 @@ document.addEventListener('click',e=>{
     case 'admit':{const o=S.scan.res&&S.scan.res.o;if(!o)break;o.st='pouzito';o.used=hhmm();S.scan.res={k:'ok',t:'Vítejte!',p:`Vstup zapsán v ${o.used}. Počet hostů se propsal do Dneška a reportu.`,o};render();toast(`${pax(o)} hostů puštěno dovnitř`);break}
     case 'moveToday':{const o=S.scan.res&&S.scan.res.o;if(!o)break;if(leftOf(TD,o.slot)<pax(o)){toast(`${o.slot?'Okruh '+o.slot:'Dnešek'} je plný, přesun nejde`);break}o.date=TD;o.st='pouzito';o.used=hhmm();S.scan.res={k:'ok',t:'Přesunuto a puštěno',p:`Vstupenka přesunuta na dnešek, vstup zapsán v ${o.used}.`,o};render();toast('Přesunuto na dnešek');break}
     case 'cam':camToggle();break;
+    case 'rcvAdd':{const used=S.rcv.lines.map(l=>l.item);const nx=myItems().find(i=>!used.includes(i.id))||myItems()[0];S.rcv.lines.push(rcvLine(nx.id));render();break}
+    case 'rcvPhoto':S.rcv.photo=!S.rcv.photo;render();break;
+    case 'rcvCancel':S.rcv=null;render();break;
+    case 'rcvConfirm':rcvConfirm();break;
+    case 'cardRcv':startRcv('none',t.dataset.id);break;
+    case 'cardIssue':$('#layer').innerHTML='';S.view='sklad';S.stab='vydej';S.iss={type:'issue',item:t.dataset.id,from:null,to:null,batch:null};render();break;
+    case 'invSave':invSave();break;
+    case 'catNew':S.catEdit=null;render();break;
     case 'resetDemo':if(DS){DS.reset();location.hash='';location.reload()}break;
     case 'sendBasket':{keepNote();const r={id:Date.now(),by:S.role,dept:S.role==='simon'?S.dept:DEPT[S.role],items:S.basket.map(b=>[...b]),note:S.basketNote||'Bez popisu',urg:S.basketUrg,st:S.role==='simon'?'schvaleno':'ceka',d:'19. 12.'};S.req.unshift(r);S.basket=[];S.basketNote='';S.basketUrg='Běžné';render();toast(S.role==='simon'?'Nákup uložen':'Odesláno Šimonovi ke schválení');break}
-    case 'paid':{const sum=S.cart.reduce((s,c)=>s+c[1]*c[2],0);S.sales.unshift({t:'13:05',items:S.cart.map(c=>`${c[1]}× ${c[0]}`).join(', '),sum,pay:S.payWith});S.cart=[];render();toast('Zaplaceno '+usd(sum));break}
+    case 'paid':{const sum=S.cart.reduce((s,c)=>s+c[1]*c[2],0);S.cart.forEach(c=>{const it=S.items.find(i=>i.name===c[0]);if(it)addMove(it.id,-c[1],'sale','bar',{note:'Prodej na baru'})});S.sales.unshift({t:'13:05',items:S.cart.map(c=>`${c[1]}× ${c[0]}`).join(', '),sum,pay:S.payWith});S.cart=[];render();toast('Zaplaceno '+usd(sum));break}
     case 'swapok':S.shifts.jose=S.shifts.jose.slice(0,6)+'R';S.shifts.carla=S.shifts.carla.slice(0,6)+'V';S.swap.open=false;render();toast('Výměna schválena');break;
     case 'swapno':S.swap.open=false;render();toast('Žádost zamítnuta');break;
     case 'clockin':t.disabled=true;t.textContent='Příchod 7:02';toast('Příchod zapsán');break;
@@ -929,6 +1254,8 @@ document.addEventListener('submit',e=>{
   e.preventDefault();
   if(e.target.id==='scanForm'){check($('#scanIn').value);return}
   if(e.target.id==='bookForm'){const slot=$('#bS').value;const b={id:Date.now(),a:$('#bA').value,slot,ad:+$('#bAd').value||0,ch:+$('#bCh').value||0,inf:+$('#bIn').value||0,tr:$('#bTr').value==='1',st:'potvrzeno'};b.direct=b.a==='Přímý prodej';const u=used(TD,slot);if(isClosed(TD,slot)){toast(`Okruh ${slot} je zavřený`);return}if(u+pax(b)>CAP){toast(`Okruh ${slot} má volných jen ${CAP-u} míst`);return}if(!pax(b)){toast('Zadej počet hostů');return}S.book.push(b);render();toast('Rezervace přidána')}
+  if(e.target.id==='issueForm'){issueSubmit();return}
+  if(e.target.id==='catForm'){catSubmit();return}
   if(e.target.id==='taskForm'){S.tasks.unshift({id:Date.now(),t:$('#tT').value,w:$('#tW').value,due:'dnes',col:0});render();toast('Úkol přidán')}
 });
 $('#role').addEventListener('change',e=>{S.role=e.target.value;S.basket=[];S.basketNote='';render()});
@@ -941,6 +1268,23 @@ setInterval(()=>{
   if(el&&S.w.code){const o=S.online.find(x=>x.code===S.w.code);if(o&&o.st==='drzi')el.textContent=holdLeft(o)}
   if(ch){if(S.w.step===3){S.w.step=1;S.w.code=null;toast('Čas na platbu vypršel, místa se uvolnila')}$('#layer').innerHTML='';render(S.view==='vstup')}
 },1000);
+
+/* sklad: formuláře, které se mění bez překreslení */
+document.addEventListener('change',e=>{
+  const t=e.target,d=t.dataset||{};
+  if(t.id==='skLoc'){S.sloc=t.value;render();return}
+  if(t.id==='invLoc'){S.invLoc=t.value;render();return}
+  if(d.iss){S.iss[d.iss]=t.value;if(d.iss==='item'){S.iss.from=null;S.iss.to=null;S.iss.batch=null}render();return}
+  if(d.rf){const[n,f]=d.rf.split(':');const l=S.rcv.lines[+n];if(f==='item'){Object.assign(l,rcvLine(t.value))}else l[f]=t.value;if(f==='item')render()}
+});
+document.addEventListener('input',e=>{
+  const t=e.target,d=t.dataset||{};
+  if(d.rcvsup!==undefined&&S.rcv){S.rcv.sup=t.value;return}
+  if(d.rf&&S.rcv){const[n,f]=d.rf.split(':');if(f==='item')return;const l=S.rcv.lines[+n];l[f]=t.value;
+    if(f==='qty')t.style.borderColor=l.ordered!=null&&+t.value<l.ordered?'var(--gold)':'';
+    const el=document.getElementById('rcvTotal');if(el)el.textContent=usd(Math.round(S.rcv.lines.reduce((a,x)=>a+(+x.qty||0)*(+x.price||0),0)*100)/100);return}
+  if(d.inv){const c=+t.value,s=+d.sys,el=document.getElementById('invd_'+d.inv);if(el){const df=Math.round((c-s)*1000)/1000;el.textContent=(df>0?'+':'')+fq(df);el.style.color=df?'var(--bad)':''}}
+});
 
 /* změny z webu rezervací v jiné záložce */
 window.addEventListener('storage',e=>{if(DS&&(e.key===DS.K_ORDERS||e.key===DS.K_SETTINGS)){S.online=DS.load();const st=DS.settings();S.mode=st.mode;S.closed=st.closed;render(!!S.cam)}});
