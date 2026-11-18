@@ -24,6 +24,11 @@
       tickets_title: 'Entradas',
       tickets_text: 'Los precios de las entradas todavía no están definidos. Publicaremos aquí toda la información antes de la apertura prevista (finales de 2026).',
       tickets_cta: 'Escríbenos por WhatsApp',
+      tickets_online: 'Reservar en línea',
+      bk_page_title: 'Reserva tu visita · Totem Nature Park',
+      bk_demo: 'Demo · fechas y precios de ejemplo, el pago es una simulación',
+      bk_eyebrow: 'Reserva en línea', bk_title: 'Reserva tu visita',
+      bk_lead: 'Elige el día y la excursión, paga en línea y recibe tu entrada con código QR al instante.',
       book: 'Reservar por WhatsApp',
       visit_eyebrow: 'Planifica tu visita', visit_title: 'Cómo llegar',
       fact_address: 'Uvero Alto, La Altagracia, República Dominicana — a 15 minutos de los resorts de Uvero Alto',
@@ -56,6 +61,11 @@
       tickets_title: 'Tickets',
       tickets_text: 'Ticket prices are not set yet. We will publish all the details here ahead of the planned opening (late 2026).',
       tickets_cta: 'Message us on WhatsApp',
+      tickets_online: 'Book online',
+      bk_page_title: 'Book your visit · Totem Nature Park',
+      bk_demo: 'Demo · sample dates and prices, payment is simulated',
+      bk_eyebrow: 'Online booking', bk_title: 'Book your visit',
+      bk_lead: 'Pick your day and tour, pay online and get your QR ticket instantly.',
       book: 'Book on WhatsApp',
       visit_eyebrow: 'Plan your visit', visit_title: 'Getting here',
       fact_address: 'Uvero Alto, La Altagracia, Dominican Republic — 15 minutes from the Uvero Alto resorts',
@@ -79,7 +89,7 @@
   function apply(lang) {
     var d = T[lang];
     document.documentElement.lang = lang;
-    document.title = d.title;
+    document.title = d[document.body.getAttribute('data-title-key')] || d.title;
     var meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute('content', d.description);
 
@@ -100,6 +110,8 @@
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
     try { localStorage.setItem(KEY, lang); } catch (e) {}
+    window.TOTEM_LANG = lang;
+    document.dispatchEvent(new CustomEvent('totem:lang', { detail: lang }));
   }
 
   document.querySelectorAll('.lang-btn').forEach(function (b) {

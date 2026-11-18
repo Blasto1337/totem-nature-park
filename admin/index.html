@@ -1,0 +1,958 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Totem Admin</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: oxblood navigační sloupec s totemem vlevo, pracovní plocha na bone; na mobilu horní lišta s posuvnou navigací */
+:root{
+  --bg:#F4EEE3; --surface:#FFFBF5; --fill:#ECE2D3; --line:#E0D2BE;
+  --ink:#2B1A15; --body:#4A3A34; --muted:#7A6A62;
+  --side:#4A241C; --side-deep:#3A1D16; --side-ink:#F4EEE3; --side-muted:#C79A78;
+  --gold:#D9A13B; --accent:#8A4A2E; --palm:#2E7D5B; --palm-soft:#DCEBE1;
+  --warn:#9A6312; --warn-soft:#F6E5C4; --bad:#A63D2F; --bad-soft:#F4DAD4;
+  --on-accent:#FFFBF5;
+  --f-display:"Alfa Slab One", "Rockwell", Georgia, serif;
+  --f-sans:"Barlow", "Helvetica Neue", Arial, sans-serif;
+  --f-cond:"Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1F110E; --surface:#2A1713; --fill:#351F1A; --line:#4A2D25;
+  --ink:#F4EEE3; --body:#E3D6C6; --muted:#C79A78;
+  --side:#160C0A; --side-deep:#120908; --side-ink:#F4EEE3; --side-muted:#C79A78;
+  --gold:#D9A13B; --accent:#E0A55A; --palm:#5DB98C; --palm-soft:#1E3A2D;
+  --warn:#E6B45C; --warn-soft:#3D2E14; --bad:#E57A68; --bad-soft:#43201A;
+  --on-accent:#1F110E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1F110E; --surface:#2A1713; --fill:#351F1A; --line:#4A2D25;
+  --ink:#F4EEE3; --body:#E3D6C6; --muted:#C79A78;
+  --side:#160C0A; --side-deep:#120908; --side-ink:#F4EEE3; --side-muted:#C79A78;
+  --gold:#D9A13B; --accent:#E0A55A; --palm:#5DB98C; --palm-soft:#1E3A2D;
+  --warn:#E6B45C; --warn-soft:#3D2E14; --bad:#E57A68; --bad-soft:#43201A;
+  --on-accent:#1F110E; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--body);font-family:var(--f-sans);font-size:15px;line-height:1.45}
+button{font:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100%}
+/* sidebar */
+.side{background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;gap:18px;padding:22px 14px 18px max(14px,env(safe-area-inset-left,0px));position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;gap:12px;align-items:center;padding:0 8px}
+.brand img{width:22px;height:auto}
+.brand b{font-family:var(--f-cond);font-weight:700;letter-spacing:.22em;font-size:13px;line-height:1.2;display:block}
+.brand small{font-family:var(--f-cond);color:var(--side-muted);letter-spacing:.16em;font-size:11px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:8px;color:var(--side-ink);font-weight:500}
+.nav button:hover{background:rgba(255,255,255,.06)}
+.nav button[aria-current="page"]{background:var(--side-deep);box-shadow:inset 3px 0 0 var(--gold)}
+.nav button:focus-visible{outline:2px solid var(--gold)}
+.nav svg{width:18px;height:18px;flex:none;stroke:var(--gold);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav .badge{margin-left:auto;background:var(--gold);color:#3A1D16;font-size:11px;font-weight:700;border-radius:99px;padding:1px 7px}
+.nav .new{margin-left:auto;font-family:var(--f-cond);letter-spacing:.12em;font-size:10px;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:0 6px}
+.who{margin-top:auto;border-top:1px solid rgba(244,238,227,.14);padding:14px 8px 0;display:flex;flex-direction:column;gap:8px}
+.who label{font-family:var(--f-cond);letter-spacing:.16em;font-size:11px;text-transform:uppercase;color:var(--side-muted)}
+.who select{background:var(--side-deep);color:var(--side-ink);border-color:rgba(244,238,227,.18)}
+.who p{margin:0;font-size:12px;color:var(--side-muted)}
+.weblink{color:var(--side-muted);font-size:13px;font-weight:600;text-decoration:none}
+.weblink:hover{color:var(--side-ink)}
+/* main */
+.main{min-width:0;padding-block:26px 60px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}
+.demo{display:inline-flex;gap:8px;align-items:center;font-family:var(--f-cond);letter-spacing:.14em;font-size:11px;text-transform:uppercase;color:var(--muted);background:var(--fill);border-radius:99px;padding:3px 10px}
+.demo i{width:6px;height:6px;border-radius:50%;background:var(--gold);display:block}
+.head{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin:12px 0 22px}
+.eyebrow{font-family:var(--f-cond);font-weight:600;letter-spacing:.24em;text-transform:uppercase;font-size:12px;color:var(--accent)}
+h1{font-family:var(--f-display);font-weight:400;color:var(--ink);font-size:30px;line-height:1.1;margin:4px 0 0;text-wrap:balance}
+h2{font-family:var(--f-cond);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--ink);margin:0}
+h3{font-size:15px;color:var(--ink);margin:0;font-weight:600}
+.sub{color:var(--muted);margin:4px 0 0}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g-main{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:16px}
+.stat{padding:16px 18px;border-left:1px solid var(--line);min-width:0}
+.stat:first-child{border-left:0}
+.stat span{font-family:var(--f-cond);letter-spacing:.14em;text-transform:uppercase;font-size:11.5px;color:var(--muted)}
+.stat b{display:block;font-size:26px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2;margin-top:2px}
+.stat small{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-weight:600;color:var(--ink)}
+.btn:hover{background:var(--fill)}
+.btn.pri{background:var(--side);border-color:var(--side);color:#F4EEE3}
+.btn.pri:hover{filter:brightness(1.15)}
+.btn.ok{background:var(--palm);border-color:var(--palm);color:var(--on-accent)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:99px;padding:2px 9px;background:var(--fill);color:var(--body);white-space:nowrap}
+.pill.ok{background:var(--palm-soft);color:var(--palm)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.gold{background:var(--warn-soft);color:var(--warn)}
+.list{display:flex;flex-direction:column}
+.li{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0;padding-top:0}
+.li .grow{flex:1;min-width:0}
+.li .meta{color:var(--muted);font-size:13px}
+.av{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:12px;color:#F4EEE3;background:var(--accent)}
+.bar{height:8px;border-radius:99px;background:var(--fill);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--palm);border-radius:99px}
+.bar.warn i{background:var(--gold)}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-family:var(--f-cond);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:11.5px;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.check{all:unset;cursor:pointer;width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;flex:none}
+.check[aria-pressed="true"]{background:var(--palm);border-color:var(--palm)}
+.check[aria-pressed="true"]::after{content:"";width:6px;height:11px;border:solid var(--on-accent);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.check:focus-visible{outline:2px solid var(--gold)}
+.done-t{text-decoration:line-through;color:var(--muted)}
+/* kanban */
+.kan{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.col{background:var(--fill);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.col h2 span{color:var(--muted);font-weight:500}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 12px;display:flex;flex-direction:column;gap:8px}
+.task.late{box-shadow:inset 3px 0 0 var(--bad)}
+.task.prio{box-shadow:inset 3px 0 0 var(--gold)}
+/* shifts */
+.sh td,.sh th{text-align:center;padding:6px 4px}
+.sh td:first-child,.sh th:first-child{text-align:left;padding-left:8px}
+.cell{all:unset;cursor:pointer;display:block;width:100%;min-width:44px;border-radius:7px;padding:6px 0;font-weight:700;font-size:13px;text-align:center}
+.cell:focus-visible{outline:2px solid var(--gold)}
+.c-R{background:var(--palm-soft);color:var(--palm)}
+.c-O{background:var(--warn-soft);color:var(--warn)}
+.c-V{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.today{background:var(--fill)}
+/* pos */
+.pos{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}
+.prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.prod{all:unset;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;min-height:84px}
+.prod:hover{border-color:var(--accent)}
+.prod:focus-visible{outline:2px solid var(--gold)}
+.prod b{color:var(--ink);font-weight:600}
+.prod span{color:var(--muted);font-size:13px}
+.prod em{font-style:normal;margin-top:auto;font-weight:700;color:var(--accent)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{all:unset;cursor:pointer;padding:6px 12px;border-radius:99px;background:var(--fill);font-weight:600;font-size:13px}
+.tab[aria-pressed="true"]{background:var(--side);color:#F4EEE3}
+.tab:focus-visible{outline:2px solid var(--gold)}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-size:15px}
+.total b{font-size:28px;color:var(--ink);font-variant-numeric:tabular-nums}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.qty button{all:unset;cursor:pointer;width:28px;text-align:center;padding:3px 0;font-weight:700}
+.qty button:hover{background:var(--fill)}
+.qty span{min-width:26px;text-align:center;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);text-align:center;padding:18px 8px;border:1px dashed var(--line);border-radius:10px}
+.note{font-size:13px;color:var(--muted)}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-sans)}
+.leg{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--side);color:#F4EEE3;padding:10px 16px;border-radius:10px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:30}
+.modal{position:fixed;inset:0;background:rgba(20,10,8,.5);display:grid;place-items:center;padding:20px;z-index:20}
+.modal .card{max-width:560px;width:100%;max-height:85vh;overflow:auto}
+.modal pre{white-space:pre-wrap;font-family:var(--f-sans);margin:0;background:var(--fill);padding:14px;border-radius:8px;color:var(--ink)}
+.form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:600}
+/* rezervace: kalendář a režim */
+.seg{display:inline-flex;background:var(--fill);border-radius:99px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;border-radius:99px;font-weight:600;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--side);color:#F4EEE3}
+.seg button:focus-visible{outline:2px solid var(--gold)}
+.cal td,.cal th{text-align:center;padding:6px 4px}
+.cal td:first-child,.cal th:first-child{text-align:left;padding-left:8px}
+.slotc{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:70px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;color:var(--ink);text-align:center}
+.slotc:hover{border-color:var(--accent)}
+.slotc.off{background:repeating-linear-gradient(45deg,var(--fill),var(--fill) 6px,var(--surface) 6px,var(--surface) 12px);color:var(--muted)}
+.slotc:focus-visible{outline:2px solid var(--gold)}
+.slotc:disabled{cursor:default}
+.slotc .bar{display:block;width:100%}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:.04em}
+/* web rezervace */
+.webwrap{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+.browser{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.bbar{display:flex;gap:6px;align-items:center;padding:9px 12px;background:var(--fill);border-bottom:1px solid var(--line)}
+.bbar i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block;flex:none}
+.bbar span{margin-left:8px;font-size:12px;color:var(--muted);background:var(--surface);border-radius:99px;padding:3px 12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.site{padding:22px;display:flex;flex-direction:column;gap:14px}
+.site-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.site .big{font-family:var(--f-display);font-weight:400;font-size:24px;color:var(--ink);margin:0;line-height:1.1}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps span{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--fill);color:var(--muted)}
+.steps span.on{background:var(--side);color:#F4EEE3}
+.steps span.done{background:var(--palm-soft);color:var(--palm)}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.pick{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;gap:2px;background:var(--surface);min-width:0}
+.pick small{color:var(--muted);font-size:11px}
+.pick b{color:var(--ink);font-size:16px}
+.pick[aria-pressed="true"]{border-color:var(--side);box-shadow:inset 0 0 0 1px var(--side);background:var(--fill)}
+.pick:disabled{opacity:.45;cursor:not-allowed}
+.pick:focus-visible{outline:2px solid var(--gold)}
+.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.slots .pick{flex-direction:row;justify-content:space-between;align-items:center;padding:12px 14px;text-align:left}
+.hold{display:flex;gap:8px;align-items:center;background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:9px 12px;font-weight:600;font-size:13px}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:600}
+.fl input,.fl select{width:100%}
+.qr{background:#fff;padding:8px;border-radius:10px;width:184px;height:184px;display:grid;place-items:center;border:1px solid var(--line)}
+.qr svg,.qr img{width:100%;height:100%;display:block}
+.mail{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.mail-h{background:var(--fill);padding:10px 14px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.mail-h b{color:var(--ink)}
+.mail-b{padding:18px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;background:var(--surface)}
+.mail-b .list{width:100%;text-align:left}
+.att{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:600;background:var(--fill);border-radius:8px;padding:5px 10px}
+.flow{margin:0;padding:0;counter-reset:f;display:flex;flex-direction:column}
+.flow li{list-style:none;display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+.flow li:first-child{border-top:0;padding-top:0}
+.flow li::before{counter-increment:f;content:counter(f);flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--fill);color:var(--muted)}
+.flow li.on{color:var(--ink);font-weight:600}
+.flow li.on::before{background:var(--gold);color:#3A1D16}
+.flow li.done::before{background:var(--palm);color:var(--on-accent)}
+.kv td{padding:6px 8px}
+.kv td:first-child{color:var(--muted);width:45%}
+/* vstup a sken */
+.scan{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.cam{aspect-ratio:4/3;background:#160C0A;border-radius:12px;display:grid;place-items:center;position:relative;overflow:hidden;text-align:center;padding:16px;color:#C79A78}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam .frame{position:absolute;inset:18%;border:3px solid var(--gold);border-radius:14px;pointer-events:none}
+.res{border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.res.ok{background:var(--palm-soft);color:var(--palm)}
+.res.bad{background:var(--bad-soft);color:var(--bad)}
+.res.warn{background:var(--warn-soft);color:var(--warn)}
+.res .big{font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1}
+.res p{margin:0;color:var(--ink)}
+@media (max-width:1100px){.g-main,.pos,.webwrap,.scan{grid-template-columns:1fr}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  .side{position:sticky;top:0;height:auto;z-index:5;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));padding-top:calc(10px + env(safe-area-inset-top,0px))}
+  .brand{padding:0}
+  .nav{order:3;flex-direction:row;overflow-x:auto;width:100%;gap:4px;padding-bottom:2px}
+  .nav button{white-space:nowrap;padding:7px 10px}
+  .nav button[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--gold)}
+  .who{margin:0 0 0 auto;border:0;padding:0;flex-direction:row;align-items:center}
+  .who label,.who p,.weblink{display:none}
+  .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 48px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}
+  .g2,.g3,.kan{grid-template-columns:1fr}
+  .form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .days{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .fgrid{grid-template-columns:1fr}
+  .site{padding:16px}
+  h1{font-size:26px}
+}
+@media (prefers-reduced-motion:no-preference){.card,.task{transition:box-shadow .15s}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><img src="data:image/png;base64,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" alt=""><div><b>TOTEM<br>NATURE PARK</b><small>Admin</small></div></div>
+    <nav class="nav" id="nav" aria-label="Moduly"></nav>
+    <div class="who">
+      <label for="role">Přihlášen jako</label>
+      <select id="role">
+        <option value="simon">Šimon · ředitel</option>
+        <option value="yasmin">Yasmín · vedoucí chovatelka</option>
+        <option value="ramon">Dr. Ramón · veterinář</option>
+        <option value="luis">Luis · údržba</option>
+        <option value="ana">Ana · bar, shop a vstup</option>
+      </select>
+      <p>Přepni roli a uvidíš, co vidí zaměstnanec.</p>
+      <a class="weblink" href="../index.html">← Web parku</a>
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+<div id="layer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="../demo-store.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const usd=n=>(n<0?'−':'')+Math.abs(n).toLocaleString('cs-CZ',{maximumFractionDigits:n%1?2:0,minimumFractionDigits:n%1?2:0})+' USD';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TODAY='So 19. 12. 2026';
+const TD='19. 12.';
+const PRICE={ad:80,ch:45};
+
+const STAFF={
+  simon:{n:'Šimon',r:'Provozní ředitel',c:'#8A4A2E'},
+  yasmin:{n:'Yasmín',r:'Vedoucí chovatelka',c:'#2E7D5B'},
+  ramon:{n:'Dr. Ramón',r:'Veterinář',c:'#3F6E8C'},
+  luis:{n:'Luis',r:'Údržba',c:'#7A5A2E'},
+  miguel:{n:'Miguel',r:'Ošetřovatel',c:'#2E7D5B'},
+  carla:{n:'Carla',r:'Průvodkyně',c:'#9A4E6A'},
+  jose:{n:'José',r:'Průvodce',c:'#5A4E9A'},
+  ana:{n:'Ana',r:'Bar, shop a vstup',c:'#B0662A'}
+};
+const av=id=>`<span class="av" style="background:${STAFF[id].c}" aria-hidden="true">${STAFF[id].n.replace('Dr. ','')[0]}</span>`;
+
+const VIEWS={
+  prehled:{t:'Dnešek',i:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
+  rezervace:{t:'Rezervace',i:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'},
+  web:{t:'Web rezervace',i:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',nw:true},
+  vstup:{t:'Vstup a QR',i:'<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><rect x="8" y="8" width="8" height="8" rx="1"/>',nw:true},
+  smeny:{t:'Směny',i:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
+  ukoly:{t:'Úkoly',i:'<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>'},
+  zvirata:{t:'Zvířata a krmení',i:'<circle cx="6" cy="9" r="2"/><circle cx="10" cy="5" r="2"/><circle cx="14" cy="5" r="2"/><circle cx="18" cy="9" r="2"/><path d="M12 11c-3 0-6 4-6 7 0 2 2 3 6 1 4 2 6 1 6-1 0-3-3-7-6-7z"/>'},
+  nakupy:{t:'Nákupy',i:'<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>'},
+  pokladna:{t:'Pokladna',i:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M7 9V4h10v5M7 14h2M11 14h2M15 14h2M7 17h10"/>'},
+  finance:{t:'Finance',i:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'},
+  partneri:{t:'Partneři',i:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 15c3 0 5 2 5 4.5"/>'}
+};
+const ROLES={
+  simon:['prehled','rezervace','web','vstup','smeny','ukoly','zvirata','nakupy','pokladna','finance','partneri'],
+  yasmin:['prehled','smeny','ukoly','zvirata','nakupy'],
+  ramon:['prehled','smeny','ukoly','zvirata','nakupy'],
+  luis:['prehled','smeny','ukoly','nakupy'],
+  ana:['prehled','vstup','pokladna','smeny','ukoly']
+};
+const DEPT={yasmin:'chov',ramon:'vet',luis:'udrzba',ana:'udrzba',simon:'chov'};
+const DEPTN={chov:'Chov a krmivo',vet:'Veterina',udrzba:'Údržba'};
+const CAT={
+  chov:[['Banány, trs 18 kg','trs',14],['Papája','kg',1.2],['Granule pro papoušky 10 kg','pytel',45],['Cvrčci živí, 500 ks','bal',22],['Krmivo pro opice 5 kg','pytel',36],['Listová zelenina','kg',2.5]],
+  vet:[['Antiparazitikum Ivermectin','ks',24],['Obvazový materiál','bal',15],['Dezinfekce F10, 1 l','ks',32],['Rukavice nitril, 100 ks','bal',11],['Vitamíny pro plazy','ks',19],['Váha do 10 kg','ks',58]],
+  udrzba:[['Pletivo pozink, 1 m','m',4.5],['Spony do pletiva, 100 ks','bal',6],['Lazura na dřevo 4 l','ks',38],['Vruty do dřeva, 200 ks','bal',9],['Benzín do sekačky 5 l','ks',7],['UV zářivka pro plazy','ks',29]]
+};
+const ST={ceka:['Čeká na schválení','warn'],schvaleno:['Schváleno, nakoupit','ok'],koupeno:['Koupeno','ok'],vraceno:['Vráceno k úpravě','bad'],zamitnuto:['Zamítnuto','bad']};
+
+/* rezervační systém: termíny a kapacity */
+const DAYS=[['So','19. 12.'],['Ne','20. 12.'],['Po','21. 12.'],['Út','22. 12.'],['St','23. 12.'],['Čt','24. 12.'],['Pá','25. 12.']];
+const DAYEN={So:'Sat',Ne:'Sun',Po:'Mon','Út':'Tue',St:'Wed','Čt':'Thu','Pá':'Fri'};
+const SLOTS=['9:30','13:00'];
+const AG={'20. 12.':{'9:30':24,'13:00':18},'21. 12.':{'9:30':31,'13:00':12},'22. 12.':{'9:30':16,'13:00':22},'23. 12.':{'9:30':38,'13:00':27},'24. 12.':{'9:30':20,'13:00':0},'25. 12.':{'9:30':12,'13:00':6}};
+const OST={drzi:['Drží místo, čeká na platbu','warn'],zaplaceno:['Zaplaceno','ok'],pouzito:['Prošli branou','ok'],zruseno:['Storno, refundováno','bad'],vyprselo:['Nezaplaceno, místa uvolněna','bad']};
+const FLOW=['Zákazník vybere den a okruh. Web ukazuje živou kapacitu, agentury i web berou ze stejných míst.','Vyplní jméno, e-mail a WhatsApp.','Systém podrží místa na 15 minut, aby se termín nepřeprodal, zatímco platí.','PayPal checkout: PayPal účtem nebo kartou bez účtu.','PayPal pošle serveru potvrzení (webhook), rezervace se přepne na zaplaceno.','Odejde e-mail s QR kódem a PDF vstupenkou, kopie na WhatsApp.','U vstupu se QR naskenuje v Totem Adminu na mobilu a vstupenka se označí jako použitá.'];
+
+const S={
+  role:'simon', view:'prehled', dept:'chov', posCat:'Bar', payWith:'USD',
+  basket:[], basketNote:'', basketUrg:'Běžné',
+  mode:'slot', rtab:'dnes', closed:{'24. 12.|13:00':true}, cam:null,
+  w:{step:1,date:TD,slot:'13:00',ad:2,ch:1,inf:0,name:'Anna Novak',email:'anna.novak@example.com',phone:'+1 555 010 0199',lang:'EN',code:null,pm:'card'},
+  scan:{code:'',res:null},
+  online:[
+    {code:'TNP-2WZ8RA',name:'Emma Becker',email:'emma.becker@example.com',phone:'+49 151 555 0123',lang:'DE',date:'19. 12.',slot:'13:00',ad:2,ch:0,inf:0,st:'zaplaceno',at:'19. 12.'},
+    {code:'TNP-9HB3KD',name:'Carlos Méndez',email:'carlos.mendez@example.com',phone:'+34 611 555 210',lang:'ES',date:'19. 12.',slot:'13:00',ad:2,ch:1,inf:0,st:'zaplaceno',at:'18. 12.'},
+    {code:'TNP-8MJ2QS',name:'Sofía Ramírez',email:'sofia.r@example.com',phone:'+52 55 5555 0177',lang:'ES',date:'23. 12.',slot:'13:00',ad:2,ch:0,inf:1,st:'zaplaceno',at:'18. 12.'},
+    {code:'TNP-6TF4VE',name:'Liam Walsh',email:'liam.walsh@example.com',phone:'+1 617 555 0164',lang:'EN',date:'21. 12.',slot:'9:30',ad:4,ch:2,inf:0,st:'zaplaceno',at:'17. 12.'},
+    {code:'TNP-4QX7M2',name:'Jana Smith',email:'jana.smith@example.com',phone:'+1 305 555 0142',lang:'EN',date:'19. 12.',slot:'9:30',ad:2,ch:0,inf:0,st:'pouzito',used:'9:24',at:'17. 12.'},
+    {code:'TNP-3RN9HX',name:'Mark Peters',email:'mark.peters@example.com',phone:'+44 7700 900123',lang:'EN',date:'19. 12.',slot:'13:00',ad:2,ch:2,inf:0,st:'zruseno',at:'16. 12.'}
+  ],
+  req:[
+    {id:1,by:'luis',dept:'udrzba',items:[['Pletivo pozink, 1 m',40,4.5],['Spony do pletiva, 100 ks',3,6]],note:'Oprava plotu u výběhu opic po bouřce',urg:'Spěchá',st:'ceka',d:'19. 12.'},
+    {id:2,by:'ramon',dept:'vet',items:[['Antiparazitikum Ivermectin',2,24],['Rukavice nitril, 100 ks',2,11]],note:'Pravidelné odčervení saimiri',urg:'Běžné',st:'ceka',d:'18. 12.'},
+    {id:3,by:'yasmin',dept:'chov',items:[['Banány, trs 18 kg',4,14],['Papája',20,1.2]],note:'Týdenní ovoce',urg:'Běžné',st:'schvaleno',d:'17. 12.'},
+    {id:4,by:'luis',dept:'udrzba',items:[['Lazura na dřevo 4 l',2,38]],note:'Natření laviček u modrého domku',urg:'Běžné',st:'koupeno',d:'15. 12.'}
+  ],
+  book:[
+    {id:1,a:'Miro Travel',slot:'9:30',ad:14,ch:4,inf:1,tr:true,st:'dorazili'},
+    {id:2,a:'Nexus Tours',slot:'9:30',ad:16,ch:2,inf:0,tr:true,st:'dorazili'},
+    {id:3,a:'Hotel v Uvero Alto (concierge)',slot:'13:00',ad:8,ch:3,inf:0,tr:false,st:'potvrzeno'},
+    {id:4,a:'Amstar',slot:'13:00',ad:12,ch:0,inf:0,tr:true,st:'potvrzeno'},
+    {id:5,a:'Přímý prodej',slot:'13:00',ad:2,ch:2,inf:1,tr:false,st:'potvrzeno',direct:true}
+  ],
+  tasks:[
+    {id:1,t:'Čištění voliéry ar',w:'miguel',due:'dnes',col:2,rep:'denně',photo:true},
+    {id:2,t:'Oprava plotu u výběhu opic',w:'luis',due:'dnes',col:1,prio:true},
+    {id:3,t:'Odčervení saimiri',w:'ramon',due:'21. 12.',col:0},
+    {id:4,t:'Výměna vody u leguánů',w:'miguel',due:'dnes',col:0,rep:'denně',photo:true},
+    {id:5,t:'Kontrola UV lamp u plazů',w:'yasmin',due:'18. 12.',col:0,late:true,rep:'týdně'},
+    {id:6,t:'Doplnit krmítka pro kolibříky',w:'carla',due:'dnes',col:0,rep:'denně'},
+    {id:7,t:'Poslat Miro Travel ceník na leden',w:'simon',due:'20. 12.',col:0},
+    {id:8,t:'Inventura baru a shopu',w:'ana',due:'20. 12.',col:1,rep:'týdně'},
+    {id:9,t:'Natřít lavičky u modrého domku',w:'luis',due:'16. 12.',col:2}
+  ],
+  shifts:{
+    yasmin:'RRRVRRR', ramon:'RVRRRRV', miguel:'RRRRVVR', luis:'RRRRRVV', carla:'OOVRRRO', jose:'RRROOOV', ana:'OOOVOOO'
+  },
+  swap:{from:'jose',to:'carla',day:6,open:true},
+  feed:[
+    {g:'Ary zelenokřídlé',n:6,t:'7:30',f:'ovoce, granule, ořechy',w:'miguel',ok:true},
+    {g:'Saimiri',n:12,t:'8:00',f:'ovoce, hmyz, granule',w:'miguel',ok:true},
+    {g:'Saimiri · krmení s hosty',n:12,t:'9:45',f:'kousky ovoce do misek pro hosty',w:'carla',ok:true},
+    {g:'Leguáni nosorozí',n:5,t:'10:30',f:'listová zelenina, květy ibišku',w:'yasmin',ok:false},
+    {g:'Lenochodi',n:2,t:'11:00',f:'zelenina, listy',w:'yasmin',ok:false},
+    {g:'Ary · krmení s hosty',n:6,t:'13:15',f:'ořechy a ovoce z ruky',w:'jose',ok:false},
+    {g:'Tukani',n:3,t:'14:00',f:'ovoce, granule',w:'miguel',ok:false},
+    {g:'Ary zelenokřídlé',n:6,t:'16:30',f:'ovoce',w:'miguel',ok:false}
+  ],
+  stock:[['Banány',2,'chov','Banány, trs 18 kg'],['Cvrčci živí',1,'chov','Cvrčci živí, 500 ks'],['Papája',4,'chov','Papája'],['Granule pro papoušky',12,'chov','Granule pro papoušky 10 kg'],['Krmivo pro opice',9,'chov','Krmivo pro opice 5 kg']],
+  health:[
+    {d:'18. 12.',a:'Saimiri „Coco“',t:'Lehký průjem, upravena dávka ovoce, sledovat 3 dny.',w:'ramon',st:'sledovat'},
+    {d:'16. 12.',a:'Leguán „Toño“',t:'Svlékání kůže v pořádku, vážení 4,2 kg.',w:'yasmin',st:'ok'},
+    {d:'14. 12.',a:'Ara „Mango“',t:'Kontrola peří po přesunu do nové voliéry, bez nálezu.',w:'ramon',st:'ok'}
+  ],
+  prods:{
+    Bar:[['Voda','0,5 l',2],['Presidente','pivo 0,33',4],['Coco frío','kokos',5],['Jugo natural','čerstvý džus',4],['Café dominicano','espresso',2],['Morir soñando','pomeranč a mléko',4]],
+    Shop:[['Plyšová ara','25 cm',18],['Tričko Totem','bavlna',22],['Magnet totem','dřevo',6],['Kšiltovka','logo',15],['Pohlednice','sada 5 ks',5],['Láhev Totem','nerez',19]]
+  },
+  cart:[],
+  sales:[{t:'12:41',items:'2× Coco frío, 1× Voda',sum:12,pay:'Karta'},{t:'12:20',items:'1× Plyšová ara',sum:18,pay:'USD'},{t:'11:58',items:'3× Presidente',sum:12,pay:'DOP'},{t:'11:02',items:'1× Tričko Totem, 1× Magnet',sum:28,pay:'Karta'}],
+  partners:[
+    {n:'Miro Travel',typ:'Agentura s dopravou',st:'Aktivní',m:35,bill:'týdně',next:'Ceník na leden do 20. 12.'},
+    {n:'Nexus Tours',typ:'DMC',st:'Aktivní',m:35,bill:'měsíčně',next:'Schůzka se stánky v hotelech'},
+    {n:'Amstar',typ:'DMC',st:'Aktivní',m:35,bill:'měsíčně',next:'Vyhodnotit první týden'},
+    {n:'Hotel v Uvero Alto',typ:'Concierge',st:'Aktivní',m:20,bill:'týdně',next:'Doprava přes partnera'},
+    {n:'Zoetry Agua',typ:'Hotel jen pro dospělé',st:'Ceník odeslán',m:20,bill:'',next:'Follow up 22. 12.'},
+    {n:'Punta Cana Adventures',typ:'Agentura',st:'Pozastaveno',m:null,bill:'',next:'Chtějí dopravu parku, vrátit se po zajištění dopravce'}
+  ]
+};
+
+/* výpočty */
+const margin=b=>b.direct?0:(b.tr?35:20);
+const gross=b=>b.ad*PRICE.ad+b.ch*PRICE.ch;
+const net=b=>gross(b)*(1-margin(b)/100);
+const pax=b=>b.ad+b.ch+b.inf;
+const reqSum=r=>r.items.reduce((s,i)=>s+i[1]*i[2],0);
+const salesSum=()=>S.sales.reduce((s,x)=>s+x.sum,0);
+const pending=()=>S.req.filter(r=>r.st==='ceka').length;
+const CAP=40;
+
+/* sdílená data s webem (reservar.html): objednávky a nastavení v prohlížeči */
+const DS=window.TotemDemo;
+if(DS){const st=DS.settings();S.mode=st.mode;S.closed=st.closed;S.online=DS.load();DS.expire(S.online)}
+function persist(){if(DS){DS.save(S.online);DS.saveSettings({mode:S.mode,closed:S.closed})}}
+
+/* rezervace: kapacity, online vstupenky */
+const tsum=o=>o.ad*PRICE.ad+o.ch*PRICE.ch;
+const fee=o=>Math.round((tsum(o)*0.0349+0.49)*100)/100;
+const live=o=>!['zruseno','vyprselo'].includes(o.st);
+const paidSt=o=>['zaplaceno','pouzito'].includes(o.st);
+const agPax=(d,s)=>d===TD?S.book.filter(b=>!s||b.slot===s).reduce((a,b)=>a+pax(b),0):(s?(AG[d]?.[s]||0):SLOTS.reduce((a,x)=>a+(AG[d]?.[x]||0),0));
+const onPax=(d,s)=>S.online.filter(o=>o.date===d&&live(o)&&(!s||o.slot===s)).reduce((a,o)=>a+pax(o),0);
+const used=(d,s)=>agPax(d,s)+onPax(d,s);
+const capOf=s=>s?CAP:CAP*SLOTS.length;
+const isClosed=(d,s)=>s?!!S.closed[d+'|'+s]:SLOTS.every(x=>S.closed[d+'|'+x]);
+const leftOf=(d,s)=>isClosed(d,s)?0:capOf(s)-used(d,s);
+const onToday=()=>S.online.filter(o=>o.date===TD&&paidSt(o));
+const onNetToday=()=>onToday().reduce((a,o)=>a+tsum(o)-fee(o),0);
+const slotLbl=o=>o.slot?'okruh '+o.slot:'volný vstup';
+const stPill=o=>`<span class="pill ${OST[o.st][1]}">${OST[o.st][0]}</span>`;
+const dEn=d=>{const x=DAYS.find(z=>z[1]===d);return `${x?DAYEN[x[0]]:''} ${parseInt(d)} Dec`};
+const vst=n=>n+' '+(n===1?'vstupenka':n>=2&&n<=4?'vstupenky':'vstupenek');
+const hhmm=()=>{const n=new Date();return n.getHours()+':'+String(n.getMinutes()).padStart(2,'0')};
+const newCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='TNP-';for(let i=0;i<6;i++)c+=a[Math.floor(Math.random()*a.length)];return c};
+function qrSvg(t){
+  try{if(window.qrcode){const q=qrcode(0,'M');q.addData(t);q.make();return q.createSvgTag({cellSize:4,margin:2,scalable:true})}}catch(e){}
+  let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))>>>0;
+  const rnd=()=>{h^=h<<13;h>>>=0;h^=h>>>17;h^=h<<5;h>>>=0;return h%100};
+  const n=25;let r='';
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    const f=(x<7&&y<7)||(x>n-8&&y<7)||(x<7&&y>n-8);let on;
+    if(f){const fx=x<7?x:x-(n-7),fy=y<7?y:y-(n-7);on=fx===0||fx===6||fy===0||fy===6||(fx>1&&fx<5&&fy>1&&fy<5)}else on=rnd()<48;
+    if(on)r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  }
+  return `<svg viewBox="-1 -1 ${n+2} ${n+2}" fill="#2B1A15" role="img" aria-label="QR kód (náhled)">${r}</svg>`;
+}
+
+function toast(m){const l=$('#layer');const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=m;l.appendChild(d);setTimeout(()=>d.remove(),2400)}
+
+function nav(){
+  $('#nav').innerHTML=ROLES[S.role].map(k=>{
+    const b=k==='nakupy'&&S.role==='simon'&&pending()?`<span class="badge">${pending()}</span>`:VIEWS[k].nw?'<span class="new">nové</span>':'';
+    return `<button data-go="${k}" ${S.view===k?'aria-current="page"':''}><svg viewBox="0 0 24 24">${VIEWS[k].i}</svg>${VIEWS[k].t}${b}</button>`}).join('');
+}
+function head(eyebrow,title,sub,right=''){return `<span class="demo"><i></i>Prototyp · ukázková data</span><div class="head"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${sub?`<p class="sub">${sub}</p>`:''}</div><div class="row">${right}</div></div>`}
+
+/* ---------- DNEŠEK ---------- */
+function vPrehled(){
+  if(S.role!=='simon') return vMyDay();
+  const ot=onToday();
+  const otPax=ot.reduce((a,o)=>a+pax(o),0);
+  const otIn=ot.filter(o=>o.st==='pouzito').reduce((a,o)=>a+pax(o),0);
+  const guests=S.book.reduce((s,b)=>s+pax(b),0)+otPax;
+  const rev=S.book.reduce((s,b)=>s+net(b),0)+onNetToday();
+  const late=S.tasks.filter(t=>t.late&&t.col<2).length;
+  const fed=S.feed.filter(f=>f.ok).length;
+  const onShift=Object.entries(S.shifts).filter(([k,v])=>v[5]!=='V');
+  const low=S.stock.filter(s=>s[1]<=2);
+  return head(TODAY,'Dobré ráno, Šimone','Park otevřen 9:00 až 17:00, dva okruhy s průvodcem.',`<button class="btn pri" data-act="report">Týdenní report pro Zoo Kontakt</button>`)+
+  `<div class="stats">
+    <div class="stat"><span>Hosté dnes</span><b>${guests} <small>/ ${CAP*2}</small></b><small>agentury ${guests-otPax} · web ${otPax}</small></div>
+    <div class="stat"><span>Čistá tržba vstupy</span><b>${usd(Math.round(rev))}</b><small>po marži agentur a poplatcích</small></div>
+    <div class="stat"><span>Bar a shop</span><b>${usd(salesSum())}</b><small>${S.sales.length} účtenek</small></div>
+    <div class="stat"><span>Ke schválení</span><b>${pending()}</b><small>${usd(S.req.filter(r=>r.st==='ceka').reduce((s,r)=>s+reqSum(r),0))} v košících</small></div>
+  </div>
+  <div class="grid g-main">
+    <div class="grid">
+      <section class="card"><div class="card-h"><h2>Dnešní příjezdy</h2><button class="btn sm" data-go="rezervace">Všechny rezervace</button></div>
+        <div class="list">${S.book.map(b=>`<div class="li"><b class="num" style="width:44px;color:var(--ink)">${b.slot}</b><div class="grow"><h3>${b.a}</h3><div class="meta">${b.ad} dosp., ${b.ch} dětí${b.inf?`, ${b.inf} do 2 let`:''} · ${b.tr?'doprava agentury':'vlastní příjezd'}</div></div>${b.st==='dorazili'?'<span class="pill ok">Dorazili</span>':'<span class="pill">Potvrzeno</span>'}</div>`).join('')}
+        <div class="li"><b class="num" style="width:44px;color:var(--ink)">web</b><div class="grow"><h3>Online vstupenky</h3><div class="meta">${ot.length} objednávek, ${otPax} hostů · branou prošlo ${otIn}</div></div><button class="btn sm" data-go="vstup">Skener</button></div></div>
+      </section>
+      <section class="card"><div class="card-h"><h2>Krmení dnes</h2><span class="pill">${fed} z ${S.feed.length}</span></div>
+        <div class="bar"><i style="width:${fed/S.feed.length*100}%"></i></div>
+        <div class="list">${S.feed.filter(f=>!f.ok).slice(0,3).map(f=>`<div class="li"><b class="num" style="width:44px;color:var(--ink)">${f.t}</b><div class="grow"><h3>${f.g}</h3><div class="meta">${f.f}</div></div>${av(f.w)}</div>`).join('')}</div>
+      </section>
+    </div>
+    <div class="grid">
+      <section class="card"><h2>Hoří</h2><div class="list">
+        ${S.req.filter(r=>r.st==='ceka').map(r=>`<div class="li"><span class="pill warn">Nákup</span><div class="grow"><h3>${r.note}</h3><div class="meta">${STAFF[r.by].n} · ${usd(reqSum(r))}</div></div><button class="btn sm" data-go="nakupy">Otevřít</button></div>`).join('')}
+        ${S.tasks.filter(t=>t.late&&t.col<2).map(t=>`<div class="li"><span class="pill bad">Po termínu</span><div class="grow"><h3>${t.t}</h3><div class="meta">${STAFF[t.w].n} · termín ${t.due}</div></div></div>`).join('')}
+        ${low.map(s=>`<div class="li"><span class="pill bad">Sklad</span><div class="grow"><h3>${s[0]}</h3><div class="meta">zásoba na ${s[1]} ${s[1]===1?'den':'dny'}</div></div></div>`).join('')}
+        ${S.swap.open?`<div class="li"><span class="pill gold">Směna</span><div class="grow"><h3>${STAFF[S.swap.from].n} chce prohodit neděli s ${STAFF[S.swap.to].n}</h3></div><button class="btn sm" data-go="smeny">Řešit</button></div>`:''}
+        ${!pending()&&!late&&!low.length&&!S.swap.open?'<div class="empty">Nic nehoří, dej si kafe ☕</div>':''}
+      </div></section>
+      <section class="card"><div class="card-h"><h2>Na směně</h2><span class="pill">${onShift.length+1} lidí</span></div>
+        <div class="list">${onShift.map(([k,v])=>`<div class="li">${av(k)}<div class="grow"><h3>${STAFF[k].n}</h3><div class="meta">${STAFF[k].r}</div></div><span class="pill ${v[5]==='R'?'ok':'warn'}">${v[5]==='R'?'7:00 až 15:00':'11:00 až 19:00'}</span></div>`).join('')}</div>
+      </section>
+    </div>
+  </div>`;
+}
+function vMyDay(){
+  const me=STAFF[S.role];const sh=S.shifts[S.role]?.[5];
+  const mine=S.tasks.filter(t=>t.w===S.role&&t.col<2);
+  const keeper=['yasmin','ramon'].includes(S.role);
+  const myReq=S.req.filter(r=>r.by===S.role);
+  return head(TODAY,`Hola, ${me.n.replace('Dr. ','')}`,me.r+' · zaměstnanci uvidí appku ve španělštině')+
+  `<div class="grid g2">
+    <section class="card"><h2>Moje směna</h2><div class="li">${av(S.role)}<div class="grow"><h3>${sh==='R'?'Ranní 7:00 až 15:00':sh==='O'?'Odpolední 11:00 až 19:00':'Dnes máš volno'}</h3><div class="meta">Příchod potvrdíš QR kódem u brány</div></div><button class="btn ok sm" data-act="clockin">Píchnout příchod</button></div></section>
+    <section class="card"><div class="card-h"><h2>Moje úkoly</h2><button class="btn sm" data-go="ukoly">Všechny</button></div>
+      <div class="list">${mine.length?mine.map(t=>`<div class="li"><button class="check" aria-pressed="false" aria-label="Hotovo: ${t.t}" data-done="${t.id}"></button><div class="grow"><h3>${t.t}</h3><div class="meta">termín ${t.due}${t.photo?' · potvrdit fotkou':''}</div></div>${t.late?'<span class="pill bad">Po termínu</span>':''}</div>`).join(''):'<div class="empty">Všechno hotovo</div>'}</div></section>
+    ${keeper?`<section class="card"><div class="card-h"><h2>Krmení dnes</h2><button class="btn sm" data-go="zvirata">Otevřít</button></div><div class="bar"><i style="width:${S.feed.filter(f=>f.ok).length/S.feed.length*100}%"></i></div><p class="note">${S.feed.filter(f=>f.ok).length} z ${S.feed.length} krmení odkliknuto</p></section>`:''}
+    ${S.role==='ana'?`<section class="card"><div class="card-h"><h2>Vstup</h2><button class="btn sm" data-go="vstup">Skenovat QR</button></div><p class="note">Dnes online ${vst(onToday().length)}, branou prošlo ${onToday().filter(o=>o.st==='pouzito').length}</p></section><section class="card"><div class="card-h"><h2>Pokladna</h2><button class="btn sm" data-go="pokladna">Otevřít</button></div><p class="note">Dnes ${S.sales.length} účtenek za ${usd(salesSum())}</p></section>`:`<section class="card"><div class="card-h"><h2>Moje nákupy</h2><button class="btn sm" data-go="nakupy">Nový nákup</button></div><div class="list">${myReq.length?myReq.map(r=>`<div class="li"><div class="grow"><h3>${r.note}</h3><div class="meta">${r.d} · ${usd(reqSum(r))}</div></div><span class="pill ${ST[r.st][1]}">${ST[r.st][0]}</span></div>`).join(''):'<div class="empty">Zatím žádný nákup</div>'}</div></section>`}
+  </div>`;
+}
+
+/* ---------- REZERVACE ---------- */
+function vRezervace(){
+  const tabs=[['dnes','Dnes'],['kalendar','Kalendář a kapacity'],['online','Online objednávky']];
+  return head(TODAY,'Rezervace a objednávky','Cena 80 USD dospělý, 45 USD dítě, do 2 let zdarma. Marže 20 % bez dopravy, 35 % s dopravou. Agentury i web berou ze stejné kapacity.')+
+  `<div class="tabs" style="margin-bottom:16px">${tabs.map(([k,l])=>`<button class="tab" aria-pressed="${S.rtab===k}" data-rtab="${k}">${l}</button>`).join('')}</div>`+
+  (S.rtab==='kalendar'?rKal():S.rtab==='online'?rOnline():rDnes());
+}
+function rDnes(){
+  const keys=S.mode==='free'?[null]:SLOTS;
+  const ot=S.online.filter(o=>o.date===TD&&o.st!=='vyprselo');
+  return `<div class="grid ${keys.length>1?'g2':''}" style="margin-bottom:16px">${keys.map(s=>{const n=used(TD,s),c=capOf(s);return `<section class="card"><div class="card-h"><h2>${s?'Okruh '+s:'Volný vstup, celý den'}</h2><span class="pill ${n>=c?'bad':n>c*.8?'warn':'ok'}">${n} / ${c}</span></div><div class="bar ${n>c*.8?'warn':''}"><i style="width:${Math.min(100,n/c*100)}%"></i></div><p class="note">Agentury ${agPax(TD,s)} · web ${onPax(TD,s)} · ${n>=c?'plno, další rezervace systém nepustí':`volných ${c-n} míst`}</p></section>`}).join('')}</div>
+  <section class="card" style="margin-bottom:16px"><h2>Nová rezervace od partnera</h2>
+    <form class="form" id="bookForm">
+      <label>Partner<select id="bA">${S.partners.filter(p=>p.st==='Aktivní').map(p=>`<option>${p.n}</option>`).join('')}<option>Přímý prodej</option></select></label>
+      <label>Okruh<select id="bS"><option>9:30</option><option>13:00</option></select></label>
+      <label>Dospělí<input id="bAd" type="number" min="0" value="10"></label>
+      <label>Děti<input id="bCh" type="number" min="0" value="2"></label>
+      <label>Do 2 let<input id="bIn" type="number" min="0" value="0"></label>
+      <label>Doprava<select id="bTr"><option value="1">Zajišťuje agentura</option><option value="0">Vlastní příjezd</option></select></label>
+      <label style="grid-column:span 2"><span>&nbsp;</span><button class="btn pri" type="submit">Přidat rezervaci</button></label>
+    </form>
+  </section>
+  <section class="card" style="margin-bottom:16px"><h2>Agentury dnes · ${TODAY}</h2><div class="tbl-wrap"><table>
+    <thead><tr><th>Okruh</th><th>Partner</th><th class="r">Osob</th><th class="r">Brutto</th><th class="r">Marže</th><th class="r">Netto</th><th>Stav</th><th></th></tr></thead>
+    <tbody>${S.book.map(b=>`<tr><td><b>${b.slot}</b></td><td>${b.a}<div class="note">${b.tr?'doprava agentury':'vlastní příjezd'}</div></td><td class="r">${pax(b)}</td><td class="r">${usd(gross(b))}</td><td class="r">${margin(b)} %</td><td class="r"><b>${usd(net(b))}</b></td><td>${b.st==='dorazili'?'<span class="pill ok">Dorazili</span>':'<span class="pill">Potvrzeno</span>'}</td><td>${b.st!=='dorazili'?`<button class="btn sm" data-arrive="${b.id}">Odbavit</button>`:''}</td></tr>`).join('')}</tbody>
+  </table></div><p class="note">Po odbavení se počty propíšou do vyúčtování agentuře (týdně nebo měsíčně podle partnera).</p></section>
+  <section class="card"><div class="card-h"><h2>Online vstupenky dnes</h2><button class="btn sm" data-go="vstup">Otevřít skener</button></div>${ot.length?`<div class="tbl-wrap"><table>
+    <thead><tr><th>Kód</th><th>Zákazník</th><th>Termín</th><th class="r">Osob</th><th class="r">Zaplaceno</th><th>Stav</th></tr></thead>
+    <tbody>${ot.map(o=>`<tr><td class="code">${o.code}</td><td>${esc(o.name)}</td><td>${slotLbl(o)}</td><td class="r">${pax(o)}</td><td class="r">${usd(tsum(o))}</td><td>${stPill(o)}${o.used?` <span class="note">v ${o.used}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Na dnešek zatím žádné online vstupenky</div>'}</section>`;
+}
+function rKal(){
+  const free=S.mode==='free';
+  const rows=free?[null]:SLOTS;
+  const boss=S.role==='simon';
+  return `<section class="card" style="margin-bottom:16px"><div class="card-h"><div style="max-width:560px"><h2>Režim vstupenek</h2><p class="note" style="margin:6px 0 0">${free?'Fáze 2, volné zoo: zákazník si koupí vstup na konkrétní den a přijde kdykoliv mezi 9:00 a 17:00. Hlídá se jen denní kapacita.':'Fáze 1: pevné okruhy s průvodcem v 9:30 a 13:00, kapacita se hlídá po okruzích.'} QR a skenování fungují v obou režimech stejně.</p></div><div class="seg" role="group" aria-label="Režim vstupenek">${[['slot','Pevné okruhy · fáze 1'],['free','Volný vstup · fáze 2']].map(([k,l])=>`<button aria-pressed="${S.mode===k}" data-mode="${k}">${l}</button>`).join('')}</div></div></section>
+  <section class="card"><div class="card-h"><h2>Obsazenost na 7 dní</h2><span class="note">${boss?'Klikem termín zavřeš nebo otevřeš (déšť, údržba, svátek).':''}</span></div><div class="tbl-wrap"><table class="cal"><thead><tr><th></th>${DAYS.map(([w,d])=>`<th class="${d===TD?'today':''}">${w} ${d}</th>`).join('')}</tr></thead><tbody>
+  ${rows.map(s=>`<tr><td><b style="color:var(--ink)">${s?'Okruh '+s:'Celý den'}</b><div class="note">kapacita ${capOf(s)}</div></td>${DAYS.map(([w,d])=>{const cl=isClosed(d,s);const n=used(d,s),c=capOf(s),p=n/c;return `<td class="${d===TD?'today':''}"><button class="slotc ${cl?'off':''}" data-close="${d}|${s||''}" ${boss?'':'disabled'} aria-label="${w} ${d} ${s||'celý den'}: ${cl?'zavřeno':n+' z '+c}"><span>${cl?'zavřeno':`${n} / ${c}`}</span>${cl?'':`<span class="bar ${p>.8?'warn':''}"><i style="width:${Math.min(100,p*100)}%"></i></span>`}<small class="note" style="font-weight:500">${cl?(boss?'klik otevře':''):`web ${onPax(d,s)}`}</small></button></td>`}).join('')}</tr>`).join('')}
+  </tbody></table></div><div class="leg"><span><i style="background:var(--palm)"></i>volno</span><span><i style="background:var(--gold)"></i>nad 80 %</span></div><p class="note">Zavřený termín se okamžitě schová i na webu. Už prodané vstupenky na zavřený termín najdeš v Online objednávkách a můžeš je přesunout nebo refundovat.</p></section>`;
+}
+function rOnline(){
+  const paid=S.online.filter(paidSt);
+  const list=S.online.filter(o=>o.st!=='vyprselo');
+  return `<div class="stats">
+    <div class="stat"><span>Online objednávky</span><b>${paid.length}</b><small>${paid.reduce((a,o)=>a+pax(o),0)} hostů</small></div>
+    <div class="stat"><span>Tržba web</span><b>${usd(paid.reduce((a,o)=>a+tsum(o),0))}</b><small>bez marže agentur</small></div>
+    <div class="stat"><span>Poplatky PayPal</span><b>${usd(Math.round(paid.reduce((a,o)=>a+fee(o),0)))}</b><small>orientačně 3,49 % + 0,49 USD</small></div>
+    <div class="stat"><span>Storna</span><b>${S.online.filter(o=>o.st==='zruseno').length}</b><small>refund přes PayPal</small></div>
+  </div>
+  <section class="card"><div class="card-h"><h2>Objednávky z webu</h2><button class="btn sm" data-go="web">Vyzkoušet nákup jako zákazník</button></div><div class="tbl-wrap"><table>
+    <thead><tr><th>Kód</th><th>Zákazník</th><th>Termín</th><th class="r">Osob</th><th class="r">Částka</th><th>Stav</th><th></th></tr></thead>
+    <tbody>${list.map(o=>`<tr><td class="code">${o.code}</td><td>${esc(o.name)}<div class="note">${esc(o.email)} · ${o.lang}</div></td><td>${o.date}<div class="note">${slotLbl(o)}</div></td><td class="r">${pax(o)}</td><td class="r">${usd(tsum(o))}</td><td>${stPill(o)}</td><td><div class="row" style="flex-wrap:nowrap">${o.st==='zaplaceno'?`<button class="btn sm" data-resend="${o.code}">Poslat znovu</button><button class="btn sm" data-refund="${o.code}">Storno a refund</button>`:''}</div></td></tr>`).join('')}</tbody>
+  </table></div><p class="note">Storno do 24 hodin před termínem vrátí peníze automaticky přes PayPal. Pozdější storno jen se souhlasem ředitele. Nezaplacené rezervace po 15 minutách samy zmizí a místa se uvolní.</p>${DS?'<div class="row"><a class="btn sm" href="../reservar.html" style="text-decoration:none">Stránka rezervací na webu ↗</a><button class="btn sm" data-act="resetDemo">Resetovat ukázková data</button></div>':''}</section>`;
+}
+
+/* ---------- WEB REZERVACE (pohled zákazníka) ---------- */
+function vWeb(){
+  const w=S.w, free=S.mode==='free';
+  const o=w.code?S.online.find(x=>x.code===w.code):null;
+  const names=['Date','Details','Payment','Tickets'];
+  const D={1:0,2:1,3:3,4:6}[w.step];
+  let body='';
+  if(w.step===1){
+    const sel=free?null:w.slot;
+    const left=sel===undefined?0:leftOf(w.date,sel);
+    const n=pax(w), sum=tsum(w);
+    const ok=n>0&&n<=left&&(free||w.slot);
+    body=`<h3>Choose a day</h3><div class="days">${DAYS.map(([wd,d])=>{const l=free?leftOf(d,null):SLOTS.reduce((a,s)=>a+Math.max(0,leftOf(d,s)),0);const cl=isClosed(d,null);return `<button class="pick" data-wd="${d}" aria-pressed="${w.date===d}" ${l<=0?'disabled':''}><small>${DAYEN[wd]}</small><b>${parseInt(d)}</b><small>${cl?'closed':l<=0?'sold out':l+' left'}</small></button>`}).join('')}</div>
+    ${free?`<p class="note" style="margin:0">Open entry: come any time between 9:00 and 17:00 on your day. Feeding sessions at 9:45 and 13:15.</p>`:`<h3>Guided tour</h3><div class="slots">${SLOTS.map(s=>{const l=leftOf(w.date,s),cl=isClosed(w.date,s);return `<button class="pick" data-ws="${s}" aria-pressed="${w.slot===s}" ${l<=0?'disabled':''}><b>${s}</b><small>${cl?'closed':l<=0?'sold out':l+(l===1?' spot left':' spots left')}</small></button>`}).join('')}</div>`}
+    <h3>Tickets</h3><div class="list">${[['ad','Adult','$80'],['ch','Child','$45'],['inf','Under 2','free']].map(([k,l,p])=>`<div class="li"><div class="grow"><h3>${l}</h3><div class="meta">${p}</div></div><span class="qty"><button data-wq="${k}:-1" aria-label="Less ${l}">−</button><span>${w[k]}</span><button data-wq="${k}:1" aria-label="More ${l}">+</button></span></div>`).join('')}</div>
+    <div class="total"><span>Total</span><b>$${sum}</b></div>
+    ${n>left?`<p class="note" style="margin:0;color:var(--bad)">Only ${Math.max(0,left)} spots left for this ${free?'day':'tour'}.</p>`:''}
+    <button class="btn pri" data-act="w2" ${ok?'':'disabled'}>Continue</button>`;
+  }else if(w.step===2){
+    body=`<div class="fgrid">
+      <label class="fl">Full name<input id="wN" value="${esc(w.name)}" autocomplete="off"></label>
+      <label class="fl">E-mail<input id="wE" type="email" value="${esc(w.email)}" autocomplete="off"></label>
+      <label class="fl">WhatsApp<input id="wP" value="${esc(w.phone)}" autocomplete="off"></label>
+      <label class="fl">Language<select id="wL">${['EN','ES','DE','FR','RU'].map(l=>`<option ${w.lang===l?'selected':''}>${l}</option>`).join('')}</select></label>
+    </div>
+    <label class="row note" style="flex-wrap:nowrap"><input type="checkbox" checked style="width:auto"> I agree to the park rules. Free cancellation up to 24 h before the visit.</label>
+    <div class="total"><span>${pax(w)} guests · ${dEn(w.date)}${free?'':', '+w.slot}</span><b>$${tsum(w)}</b></div>
+    <div class="row"><button class="btn" data-act="w1">Back</button><button class="btn pri" data-act="w3">Continue to payment</button></div>`;
+  }else if(w.step===3&&o){
+    body=`<div class="hold">⏱ We are holding your spots for <span id="holdT" class="num">${holdLeft(o)}</span></div>
+    <div class="list">${sumRows(o)}</div>
+    <div class="total"><span>To pay</span><b>$${tsum(o)}</b></div>
+    <button class="btn pri" data-act="pp" data-m="paypal">Pay with PayPal</button>
+    <button class="btn" data-act="pp" data-m="card">Debit or credit card</button>
+    <div class="row" style="justify-content:space-between"><button class="btn sm" data-act="wBack">Back</button><button class="btn sm" data-act="expire">Simulovat vypršení 15 minut</button></div>`;
+  }else if(o){
+    body=`<div class="res ok" style="padding:12px 16px"><b>Payment received. Your tickets are on the way!</b></div>${mailHtml(o)}
+    <div class="row"><button class="btn pri" data-act="toScan">Naskenovat u vstupu (admin)</button><button class="btn" data-act="wNew">Nová rezervace</button></div>`;
+  }
+  return head('Pohled zákazníka','Web rezervace','Takhle to uvidí host na webu parku. Projdi nákup a vstupenku pak naskenuj u vstupu.',DS?'<a class="btn" href="../reservar.html" style="text-decoration:none">Otevřít stránku rezervací na webu ↗</a>':'')+
+  `<div class="webwrap">
+    <div class="browser"><div class="bbar"><i></i><i></i><i></i><span>vase-domena.com/book</span></div>
+      <div class="site"><div class="site-h"><p class="big">Book your visit</p><div class="steps">${names.map((n,i)=>`<span class="${i+1===w.step?'on':i+1<w.step?'done':''}">${n}</span>`).join('')}</div></div>${body}</div>
+    </div>
+    <div class="grid">
+      <section class="card"><h2>Co se děje na pozadí</h2><ol class="flow">${FLOW.map((t,i)=>`<li class="${i<D?'done':i===D?'on':''}">${t}</li>`).join('')}</ol></section>
+      <section class="card"><h2>Záznam v adminu</h2>${o?`<table class="kv"><tbody>
+        <tr><td>Kód</td><td class="code">${o.code}</td></tr>
+        <tr><td>Stav</td><td>${stPill(o)}</td></tr>
+        <tr><td>Termín</td><td>${o.date}, ${slotLbl(o)}</td></tr>
+        <tr><td>Osob</td><td>${pax(o)}</td></tr>
+        <tr><td>Částka</td><td>${usd(tsum(o))}</td></tr>
+        <tr><td>Poplatek PayPal</td><td>${usd(fee(o))}</td></tr>
+        <tr><td>Čistě pro park</td><td><b>${usd(Math.round((tsum(o)-fee(o))*100)/100)}</b></td></tr>
+      </tbody></table>`:'<div class="empty">Záznam vznikne po vyplnění údajů, kdy se podrží místa.</div>'}
+      <p class="note" style="margin:0">${free?'Režim volného vstupu (fáze 2).':'Režim pevných okruhů (fáze 1).'} Přepíná se v Rezervace › Kalendář a kapacity.</p></section>
+    </div>
+  </div>`;
+}
+function holdLeft(o){const s=Math.max(0,Math.round(((o.hold||0)-Date.now())/1000));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
+function sumRows(o){return `<div class="li"><div class="grow meta">Date</div><b>${dEn(o.date)}</b></div>
+  <div class="li"><div class="grow meta">${o.slot?'Guided tour':'Entry'}</div><b>${o.slot||'Any time 9:00 to 17:00'}</b></div>
+  <div class="li"><div class="grow meta">Tickets</div><b>${o.ad} adult${o.ad===1?'':'s'}${o.ch?`, ${o.ch} child${o.ch===1?'':'ren'}`:''}${o.inf?`, ${o.inf} under 2`:''}</b></div>`}
+function mailHtml(o){
+  return `<div class="mail"><div class="mail-h"><span>Od: <b>Totem Nature Park</b> &lt;tickets@vase-domena.com&gt;</span><span>Komu: ${esc(o.email)}</span><span>Předmět: <b>Your tickets · ${dEn(o.date)}${o.slot?', '+o.slot:''}</b></span></div>
+  <div class="mail-b"><p class="big" style="font-family:var(--f-display);font-size:20px;color:var(--ink);margin:0">See you in the jungle, ${esc(o.name.split(' ')[0])}!</p>
+  <div class="qr">${qrSvg(o.code)}</div><div class="code" style="color:var(--ink)">${o.code}</div>
+  <p class="note" style="margin:0">Show this QR code at the entrance. One code for the whole group.</p>
+  <div class="list">${sumRows(o)}<div class="li"><div class="grow meta">Paid</div><b>$${tsum(o)}</b></div></div>
+  <p class="note" style="margin:0">Free cancellation up to 24 h before your visit. Questions? Message us on WhatsApp.</p>
+  <span class="att">📎 Totem-ticket-${o.code}.pdf</span></div></div>
+  <p class="note" style="margin:0">Stejný QR odejde i na WhatsApp ${esc(o.phone)}. V ostré verzi QR nese dlouhý náhodný token, ne krátký kód, aby se nedal uhodnout.</p>`;
+}
+function ppModal(){
+  const o=S.online.find(x=>x.code===S.w.code);if(!o)return;
+  const card=S.w.pm==='card';
+  $('#layer').innerHTML=`<div class="modal" data-bg="1"><section class="card" role="dialog" aria-modal="true" aria-label="Platba"><div class="card-h"><h2>PayPal checkout · simulace</h2><button class="btn sm" data-act="closeModal">Zavřít</button></div>
+  <p class="note" style="margin:0">V ostré verzi se tady otevře okno PayPalu přímo na webu parku. ${card?'Host zadá kartu do polí, která vykreslí PayPal. Data karty nikdy neprojdou vaším serverem, takže neřešíte PCI certifikaci.':'Host se přihlásí svým PayPal účtem a potvrdí platbu.'}</p>
+  <div class="total"><span>${pax(o)} vstupenek · ${o.code}</span><b>${usd(tsum(o))}</b></div>
+  <div class="row"><button class="btn pri" data-act="ppPay">Zaplatit ${usd(tsum(o))}</button><button class="btn" data-act="ppFail">Simulovat zamítnutou kartu</button></div></section></div>`;
+}
+function keepW(){const g=id=>document.getElementById(id);if(g('wN')){S.w.name=g('wN').value;S.w.email=g('wE').value;S.w.phone=g('wP').value;S.w.lang=g('wL').value}}
+
+/* ---------- VSTUP A QR ---------- */
+function vVstup(){
+  const ot=onToday();
+  const inside=ot.filter(o=>o.st==='pouzito');
+  const r=S.scan.res;
+  const cnt=a=>a.reduce((s,o)=>s+pax(o),0);
+  const res=!r?'<div class="empty">Zatím nic nenaskenováno. Namiř kameru na QR z e-mailu nebo telefonu hosta.</div>':
+    `<div class="res ${r.k}"><span class="big">${r.t}</span>${r.o?`<p><b>${esc(r.o.name)}</b> · <span class="code">${r.o.code}</span></p><p>${r.o.ad} dosp., ${r.o.ch} dětí${r.o.inf?`, ${r.o.inf} do 2 let`:''} · ${slotLbl(r.o)}</p><p class="note">${r.o.date} · ${usd(tsum(r.o))} zaplaceno přes PayPal</p>`:''}${r.p?`<p>${r.p}</p>`:''}${r.go?`<button class="btn ok" data-act="admit">Pustit dovnitř (${pax(r.o)} osob)</button>`:''}${r.move?`<button class="btn" data-act="moveToday">Přesunout na dnešek a pustit</button>`:''}</div>`;
+  return head(TODAY,'Vstup a QR','Naskenuj QR z e-mailu nebo telefonu hosta. U brány stačí mobil, nic dalšího se kupovat nemusí.')+
+  `<div class="stats">
+    <div class="stat"><span>Online dnes</span><b>${cnt(ot)}</b><small>${vst(ot.length)}</small></div>
+    <div class="stat"><span>Prošlo branou</span><b>${cnt(inside)}</b><small>${vst(inside.length)}</small></div>
+    <div class="stat"><span>Ještě dorazí</span><b>${cnt(ot)-cnt(inside)}</b><small>z webu</small></div>
+    <div class="stat"><span>Agentury</span><b>${agPax(TD)}</b><small>odbavují se v Rezervacích</small></div>
+  </div>
+  <div class="scan">
+    <section class="card"><div class="card-h"><h2>Skener</h2><button class="btn ${S.cam?'':'pri'} sm" data-act="cam">${S.cam?'Vypnout kameru':'Skenovat kamerou'}</button></div>
+      <div class="cam">${S.cam?'<video id="vid" playsinline muted></video><div class="frame"></div>':'<div><b style="color:#F4EEE3">Kamera vypnutá</b><br><span style="font-size:13px">Na mobilu u brány se skener spustí rovnou po otevření.</span></div>'}</div>
+      <form id="scanForm" class="row"><input id="scanIn" class="code" placeholder="Kód vstupenky, např. TNP-9HB3KD" value="${esc(S.scan.code)}" style="flex:1;min-width:170px" autocomplete="off" aria-label="Kód vstupenky"><button class="btn" type="submit">Ověřit</button></form>
+      <div><p class="note" style="margin:0 0 6px">Testovací vstupenky, klik simuluje sken:</p><div class="row">${S.online.filter(o=>o.st!=='vyprselo').map(o=>`<button class="btn sm code" data-scan="${o.code}">${o.code}</button>`).join('')}<button class="btn sm code" data-scan="TNP-XXXXXX">neznámý kód</button></div></div>
+    </section>
+    <section class="card"><h2>Výsledek</h2>${res}</section>
+  </div>
+  <section class="card" style="margin-top:16px"><h2>Online vstupenky dnes</h2>${ot.length?`<div class="tbl-wrap"><table><thead><tr><th>Kód</th><th>Host</th><th>Termín</th><th class="r">Osob</th><th>Stav</th><th></th></tr></thead><tbody>${ot.map(o=>`<tr><td class="code">${o.code}</td><td>${esc(o.name)}</td><td>${slotLbl(o)}</td><td class="r">${pax(o)}</td><td>${stPill(o)}${o.used?` <span class="note">v ${o.used}</span>`:''}</td><td>${o.st==='zaplaceno'?`<button class="btn sm" data-scan="${o.code}">Najít</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Dnes žádné online vstupenky</div>'}<p class="note" style="margin:0">Když host nemá telefon ani e-mail po ruce, najdeš ho podle jména a pustíš ručně.</p></section>`;
+}
+function check(code){
+  code=String(code||'').trim().toUpperCase();
+  if(!code)return;
+  S.scan.code=code;
+  const o=S.online.find(x=>x.code===code);let r;
+  if(!o)r={k:'bad',t:'Neznámý kód',p:'Vstupenka v systému neexistuje. Zkontroluj kód nebo hledej hosta podle jména.'};
+  else if(o.st==='zruseno')r={k:'bad',t:'Zrušená vstupenka',p:'Objednávka byla stornována a peníze vráceny.',o};
+  else if(o.st==='vyprselo')r={k:'bad',t:'Nezaplaceno',p:'Rezervace nebyla zaplacena a místa se uvolnila. Host může koupit vstup na místě.',o};
+  else if(o.st==='drzi')r={k:'warn',t:'Čeká na platbu',p:'Host ještě nedokončil platbu. Může zaplatit kartou na baru.',o};
+  else if(o.st==='pouzito')r={k:'bad',t:'Už použitá',p:`Tahle vstupenka prošla branou dnes v ${o.used}.`,o};
+  else if(o.date!==TD)r={k:'warn',t:`Vstupenka je na ${o.date}`,p:'Datum nesedí. Pokud je dnes volno, můžeš ji přesunout na dnešek.',o,move:true};
+  else r={k:'ok',t:'Platná vstupenka',p:'',o,go:true};
+  S.scan.res=r;render();
+}
+async function camToggle(){
+  if(S.cam){stopCam();render();return}
+  if(!('BarcodeDetector' in window)||!navigator.mediaDevices?.getUserMedia){toast('Tenhle prohlížeč skenovat neumí, použij testovací kódy');return}
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    S.cam=st;render(true);
+    const v=$('#vid');v.srcObject=st;await v.play();
+    const det=new BarcodeDetector({formats:['qr_code']});
+    const loop=async()=>{if(!S.cam||!document.getElementById('vid'))return;try{const c=await det.detect(v);if(c.length){stopCam();check(c[0].rawValue.split('/').pop());return}}catch(e){}requestAnimationFrame(loop)};
+    loop();
+  }catch(e){stopCam();render();toast('Kamera není dostupná')}
+}
+function stopCam(){if(S.cam){S.cam.getTracks().forEach(t=>t.stop());S.cam=null}}
+
+/* ---------- SMĚNY ---------- */
+function vSmeny(){
+  const days=['Po 14.','Út 15.','St 16.','Čt 17.','Pá 18.','So 19.','Ne 20.'];
+  const edit=S.role==='simon';
+  return head('Týden 14.–20. 12. 2026','Směny',edit?'Klikem na políčko přepneš ranní, odpolední a volno.':'Svou dostupnost a výměny posíláš řediteli ke schválení.')+
+  `<div class="grid g-main"><section class="card"><div class="tbl-wrap"><table class="sh"><thead><tr><th>Zaměstnanec</th>${days.map((d,i)=>`<th class="${i===5?'today':''}">${d}</th>`).join('')}</tr></thead><tbody>
+  ${Object.entries(S.shifts).map(([k,v])=>`<tr><td><div class="row" style="flex-wrap:nowrap">${av(k)}<div><b style="color:var(--ink)">${STAFF[k].n}</b><div class="note">${STAFF[k].r}</div></div></div></td>${[...v].map((c,i)=>`<td class="${i===5?'today':''}"><button class="cell c-${c}" ${edit?`data-shift="${k}:${i}"`:'disabled'} aria-label="${STAFF[k].n} ${days[i]}: ${c==='R'?'ranní':c==='O'?'odpolední':'volno'}">${c==='V'?'volno':c}</button></td>`).join('')}</tr>`).join('')}
+  </tbody></table></div>
+  <div class="leg"><span><i style="background:var(--palm)"></i>R ranní 7:00 až 15:00</span><span><i style="background:var(--gold)"></i>O odpolední 11:00 až 19:00</span></div></section>
+  <div class="grid">
+    <section class="card"><h2>Žádost o výměnu</h2>${S.swap.open?`<div class="li">${av(S.swap.from)}<div class="grow"><h3>${STAFF[S.swap.from].n} ↔ ${STAFF[S.swap.to].n}</h3><div class="meta">neděle 20. 12. · rodinná oslava</div></div></div>${edit?`<div class="row"><button class="btn ok" data-act="swapok">Schválit</button><button class="btn" data-act="swapno">Zamítnout</button></div>`:'<span class="pill warn">Čeká na Šimona</span>'}`:'<div class="empty">Žádné otevřené žádosti</div>'}</section>
+    <section class="card"><h2>Obsazení stanovišť v sobotu</h2><div class="list">
+      ${[['Průvodci, 2 okruhy',['carla','jose']],['Chov a krmení',['yasmin','miguel']],['Veterina',['ramon']],['Bar, shop a vstup',['ana']],['Údržba',[]]].map(([n,p])=>{const on=p.filter(x=>S.shifts[x][5]!=='V');return `<div class="li"><div class="grow"><h3>${n}</h3><div class="meta">${on.map(x=>STAFF[x].n).join(', ')||'nikdo'}</div></div><span class="pill ${on.length?'ok':'bad'}">${on.length?'pokryto':'chybí'}</span></div>`}).join('')}
+    </div></section>
+  </div></div>`;
+}
+
+/* ---------- ÚKOLY ---------- */
+function vUkoly(){
+  const cols=['Udělat','Probíhá','Hotovo'];
+  const mineOnly=S.role!=='simon';
+  const list=S.tasks.filter(t=>!mineOnly||t.w===S.role);
+  return head(TODAY,'Úkoly',mineOnly?'Tvoje úkoly. Opakované se samy vytváří každý den nebo týden.':'Opakované úkoly se zakládají samy, u některých je potřeba potvrdit fotkou.')+
+  (S.role==='simon'?`<section class="card" style="margin-bottom:16px"><form class="form" id="taskForm"><label style="grid-column:span 2">Nový úkol<input id="tT" placeholder="Např. Zkontrolovat zámky voliér" required></label><label>Komu<select id="tW">${Object.keys(STAFF).map(k=>`<option value="${k}">${STAFF[k].n}</option>`).join('')}</select></label><label><span>&nbsp;</span><button class="btn pri" type="submit">Přidat</button></label></form></section>`:'')+
+  `<div class="kan">${cols.map((c,ci)=>{const ts=list.filter(t=>t.col===ci);return `<div class="col"><h2>${c} <span>${ts.length}</span></h2>${ts.map(t=>`<div class="task ${t.late&&ci<2?'late':t.prio&&ci<2?'prio':''}"><h3 class="${ci===2?'done-t':''}">${t.t}</h3><div class="row">${av(t.w)}<span class="note">${STAFF[t.w].n} · ${t.due}</span></div><div class="row">${t.rep?`<span class="pill">${t.rep}</span>`:''}${t.photo?'<span class="pill">📷 foto</span>':''}${t.late&&ci<2?'<span class="pill bad">Po termínu</span>':''}${t.prio&&ci<2?'<span class="pill gold">Priorita</span>':''}${ci<2?`<button class="btn sm" style="margin-left:auto" data-move="${t.id}">${ci===0?'Začít':'Hotovo'}</button>`:''}</div></div>`).join('')||'<div class="empty">Prázdné</div>'}</div>`}).join('')}</div>`;
+}
+
+/* ---------- ZVÍŘATA ---------- */
+function vZvirata(){
+  return head(TODAY,'Zvířata a krmení','Krmné dávky podle plánu. Ošetřovatel odklikne, zásoby se odečtou ze skladu.')+
+  `<div class="grid g-main"><section class="card"><div class="card-h"><h2>Plán krmení</h2><span class="pill">${S.feed.filter(f=>f.ok).length} z ${S.feed.length}</span></div><div class="list">
+  ${S.feed.map((f,i)=>`<div class="li"><button class="check" aria-pressed="${f.ok}" aria-label="Nakrmeno: ${f.g} ${f.t}" data-feed="${i}"></button><b class="num" style="width:44px;color:var(--ink)">${f.t}</b><div class="grow"><h3 class="${f.ok?'done-t':''}">${f.g} <span class="note">· ${f.n} ks</span></h3><div class="meta">${f.f}</div></div>${av(f.w)}</div>`).join('')}
+  </div></section>
+  <div class="grid">
+    <section class="card"><h2>Sklad krmiva</h2><div class="list">${S.stock.map((s,i)=>`<div class="li"><div class="grow"><h3>${s[0]}</h3><div class="bar ${s[1]<=2?'warn':''}" style="margin-top:6px"><i style="width:${Math.min(100,s[1]/14*100)}%"></i></div></div><span class="pill ${s[1]<=1?'bad':s[1]<=2?'warn':''} num">${s[1]} ${s[1]===1?'den':s[1]<5?'dny':'dní'}</span>${s[1]<=2?`<button class="btn sm" data-restock="${i}">Do košíku</button>`:''}</div>`).join('')}</div></section>
+    <section class="card"><h2>Zdravotní deník</h2><div class="list">${S.health.map(h=>`<div class="li"><div class="grow"><h3>${h.a}</h3><div class="meta">${h.t}</div><div class="meta">${h.d} · ${STAFF[h.w].n}</div></div><span class="pill ${h.st==='ok'?'ok':'warn'}">${h.st==='ok'?'v pořádku':'sledovat'}</span></div>`).join('')}</div><p class="note">Historii jde vyexportovat pro úřady jedním klikem.</p></section>
+  </div></div>`;
+}
+
+/* ---------- NÁKUPY ---------- */
+function vNakupy(){
+  const boss=S.role==='simon';
+  const dept=boss?S.dept:DEPT[S.role];
+  const bsum=S.basket.reduce((s,i)=>s+i[1]*i[2],0);
+  const queue=boss?S.req:S.req.filter(r=>r.by===S.role);
+  const order=['ceka','schvaleno','vraceno','koupeno','zamitnuto'];
+  const sorted=[...queue].sort((a,b)=>order.indexOf(a.st)-order.indexOf(b.st));
+  return head(TODAY,'Nákupy',boss?'Košíky od údržby, veterináře a chovu chodí sem ke schválení. Po nákupu se zapíšou do výdajů.':'Naklikej, co potřebuješ, a pošli Šimonovi ke schválení.')+
+  `<div class="pos">
+    <section class="card"><div class="card-h"><h2>Katalog · ${DEPTN[dept]}</h2>${boss?`<div class="tabs">${Object.keys(DEPTN).map(d=>`<button class="tab" aria-pressed="${d===dept}" data-dept="${d}">${DEPTN[d]}</button>`).join('')}</div>`:''}</div>
+      <div class="prods">${CAT[dept].map((p,i)=>`<button class="prod" data-add="${dept}:${i}"><b>${p[0]}</b><span>za ${p[1]}</span><em>${usd(p[2])}</em></button>`).join('')}</div>
+      <p class="note">Ceny jsou orientační, skutečnou částku doplní ten, kdo nakupuje.</p>
+    </section>
+    <section class="card"><h2>Můj košík</h2>
+      ${S.basket.length?`<div class="list">${S.basket.map((b,i)=>`<div class="li"><div class="grow"><h3>${b[0]}</h3><div class="meta">${usd(b[2])} / ks</div></div><span class="qty"><button data-q="${i}:-1" aria-label="Ubrat">−</button><span>${b[1]}</span><button data-q="${i}:1" aria-label="Přidat">+</button></span></div>`).join('')}</div>
+      <label class="note" for="bNote">K čemu to je</label><textarea id="bNote" rows="2" placeholder="Např. oprava plotu u opic">${S.basketNote}</textarea>
+      <div class="tabs">${['Běžné','Spěchá'].map(u=>`<button class="tab" aria-pressed="${S.basketUrg===u}" data-urg="${u}">${u}</button>`).join('')}</div>
+      <div class="total"><span>Celkem odhad</span><b>${usd(bsum)}</b></div>
+      <button class="btn pri" data-act="sendBasket">${boss?'Uložit jako nákup':'Odeslat ke schválení'}</button>`:'<div class="empty">Košík je prázdný. Klikni na položku v katalogu.</div>'}
+    </section>
+  </div>
+  <section class="card" style="margin-top:16px"><h2>${boss?'Žádosti o nákup':'Moje žádosti'}</h2><div class="list">
+  ${sorted.length?sorted.map(r=>`<div class="li" style="align-items:flex-start">${av(r.by)}<div class="grow"><div class="row"><h3>${r.note}</h3>${r.urg==='Spěchá'?'<span class="pill bad">Spěchá</span>':''}</div><div class="meta">${STAFF[r.by].n} · ${DEPTN[r.dept]} · ${r.d}</div><div class="meta">${r.items.map(i=>`${i[1]}× ${i[0]}`).join(', ')}</div></div><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><b class="num" style="color:var(--ink)">${usd(reqSum(r))}</b><span class="pill ${ST[r.st][1]}">${ST[r.st][0]}</span>
+    ${boss&&r.st==='ceka'?`<div class="row"><button class="btn ok sm" data-rq="${r.id}:schvaleno">Schválit</button><button class="btn sm" data-rq="${r.id}:vraceno">Vrátit</button><button class="btn sm" data-rq="${r.id}:zamitnuto">Zamítnout</button></div>`:''}
+    ${r.st==='schvaleno'?`<button class="btn sm" data-rq="${r.id}:koupeno">Koupeno, zapsat výdaj</button>`:''}
+  </div></div>`).join(''):'<div class="empty">Zatím žádné žádosti</div>'}
+  </div></section>`;
+}
+
+/* ---------- POKLADNA ---------- */
+function vPokladna(){
+  const sum=S.cart.reduce((s,c)=>s+c[1]*c[2],0);
+  const rate=60;
+  const by=m=>S.sales.filter(s=>s.pay===m).reduce((a,s)=>a+s.sum,0);
+  return head(TODAY,'Pokladna','Bar a souvenir shop. Hotovost v USD i pesos, karta přes terminál.')+
+  `<div class="pos">
+    <section class="card"><div class="tabs">${Object.keys(S.prods).map(c=>`<button class="tab" aria-pressed="${S.posCat===c}" data-pc="${c}">${c==='Bar'?'Bar':'Souvenir shop'}</button>`).join('')}</div>
+      <div class="prods">${S.prods[S.posCat].map((p,i)=>`<button class="prod" data-sell="${i}"><b>${p[0]}</b><span>${p[1]}</span><em>${usd(p[2])}</em></button>`).join('')}</div></section>
+    <section class="card"><h2>Účtenka</h2>
+      ${S.cart.length?`<div class="list">${S.cart.map((c,i)=>`<div class="li"><div class="grow"><h3>${c[0]}</h3><div class="meta">${usd(c[2])}</div></div><span class="qty"><button data-cq="${i}:-1" aria-label="Ubrat">−</button><span>${c[1]}</span><button data-cq="${i}:1" aria-label="Přidat">+</button></span></div>`).join('')}</div>
+      <div class="total"><span>K zaplacení</span><b>${usd(sum)}</b></div>
+      ${S.payWith==='DOP'?`<p class="note num">= ${(sum*rate).toLocaleString('cs-CZ')} DOP (kurz nastavíš v adminu, tady ukázka 1 USD = ${rate} DOP)</p>`:''}
+      <div class="tabs">${[['USD','Hotově USD'],['DOP','Hotově DOP'],['Karta','Karta']].map(([k,l])=>`<button class="tab" aria-pressed="${S.payWith===k}" data-pay="${k}">${l}</button>`).join('')}</div>
+      <button class="btn pri" data-act="paid">Zaplaceno</button>`:'<div class="empty">Klikni na produkt a přidá se na účtenku</div>'}
+    </section>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <section class="card"><h2>Dnešní prodeje</h2><div class="list">${S.sales.map(s=>`<div class="li"><b class="num" style="width:44px;color:var(--ink)">${s.t}</b><div class="grow"><h3>${s.items}</h3></div><span class="pill">${s.pay}</span><b class="num">${usd(s.sum)}</b></div>`).join('')}</div></section>
+    <section class="card"><div class="card-h"><h2>Uzávěrka směny</h2><button class="btn sm" data-act="close">Uzavřít den</button></div><div class="tbl-wrap"><table><tbody>
+      <tr><td>Hotovost USD</td><td class="r">${usd(by('USD'))}</td></tr><tr><td>Hotovost DOP</td><td class="r">${usd(by('DOP'))}</td></tr><tr><td>Karta</td><td class="r">${usd(by('Karta'))}</td></tr><tr><td><b>Celkem</b></td><td class="r"><b>${usd(salesSum())}</b></td></tr></tbody></table></div><p class="note">Při uzávěrce Ana přepočítá hotovost v šuplíku, rozdíl se zapíše a vidíš ho ve financích.</p></section>
+  </div>`;
+}
+
+/* ---------- FINANCE ---------- */
+function vFinance(){
+  const todayNet=S.book.reduce((s,b)=>s+net(b),0)+salesSum()+onNetToday();
+  const bought=S.req.filter(r=>r.st==='koupeno');
+  const todayExp=bought.filter(r=>r.d==='19. 12.').reduce((s,r)=>s+reqSum(r),0)+140;
+  const days=['Ne 13.','Po 14.','Út 15.','St 16.','Čt 17.','Pá 18.','So 19.'];
+  const inc=[1180,1420,980,1650,1310,2040,Math.round(todayNet)];
+  const exp=[420,380,1250,300,510,260,Math.round(todayExp)];
+  const max=Math.max(...inc,...exp)*1.1, H=170, W=560, bw=22, gap=W/7;
+  const y=v=>H-v/max*H;
+  const ticks=[0,1000,2000].filter(t=>t<max);
+  const chart=`<svg class="chart" viewBox="-40 -10 ${W+50} ${H+34}" style="width:100%;height:auto" role="img" aria-label="Příjmy a výdaje za posledních 7 dní">
+    ${ticks.map(t=>`<line x1="0" x2="${W}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="-8" y="${y(t)+4}" text-anchor="end">${t.toLocaleString('cs-CZ')}</text>`).join('')}
+    ${inc.map((v,i)=>`<rect x="${i*gap+gap/2-bw-2}" y="${y(v)}" width="${bw}" height="${H-y(v)}" rx="3" fill="var(--palm)"/><rect x="${i*gap+gap/2+2}" y="${y(exp[i])}" width="${bw}" height="${H-y(exp[i])}" rx="3" fill="var(--gold)"/><text x="${i*gap+gap/2}" y="${H+18}" text-anchor="middle" ${i===6?'style="fill:var(--ink);font-weight:700"':''}>${days[i]}</text>`).join('')}
+  </svg>`;
+  const recv=[['Miro Travel','týdně','14.–20. 12.',1240,'otevřené'],['Nexus Tours','měsíčně','prosinec',2980,'otevřené'],['Amstar','měsíčně','prosinec',1515,'otevřené'],['Hotel v Uvero Alto','týdně','7.–13. 12.',410,'po splatnosti']];
+  const exps=[...bought.map(r=>[r.d,r.note,DEPTN[r.dept],reqSum(r)]),['18. 12.','Elektřina, listopad','Energie',612],['17. 12.','Palivo pro pick-up','Doprava',85],['15. 12.','Zálohy na mzdy','Mzdy',3200]];
+  return head('Prosinec 2026','Finance','Příjmy ze vstupů se počítají samy z odbavených rezervací a online vstupenek, výdaje ze schválených nákupů.')+
+  `<div class="stats">
+    <div class="stat"><span>Příjmy prosinec</span><b>${usd(17280+Math.round(todayNet))}</b><small>plán 28 000 USD</small></div>
+    <div class="stat"><span>Výdaje prosinec</span><b>${usd(11940+Math.round(todayExp))}</b><small>plán 21 500 USD</small></div>
+    <div class="stat"><span>Pohledávky</span><b>${usd(recv.reduce((s,r)=>s+r[3],0))}</b><small>1 po splatnosti</small></div>
+    <div class="stat"><span>Hotovost v pokladně</span><b>${usd(S.sales.filter(s=>s.pay!=='Karta').reduce((a,s)=>a+s.sum,0)+150)}</b><small>vč. 150 USD drobných</small></div>
+  </div>
+  <div class="grid g-main">
+    <section class="card"><div class="card-h"><h2>Posledních 7 dní, USD</h2><div class="leg"><span><i style="background:var(--palm)"></i>Příjmy</span><span><i style="background:var(--gold)"></i>Výdaje</span></div></div><div class="tbl-wrap">${chart}</div>
+      <div><div class="row" style="justify-content:space-between"><span class="note">Cashflow plán prosinec, příjmy</span><span class="note num">${Math.round((17280+todayNet)/28000*100)} %</span></div><div class="bar"><i style="width:${Math.min(100,(17280+todayNet)/28000*100)}%"></i></div></div>
+    </section>
+    <section class="card"><h2>Pohledávky u partnerů</h2><div class="list">${recv.map(r=>`<div class="li"><div class="grow"><h3>${r[0]}</h3><div class="meta">${r[2]} · fakturace ${r[1]}</div></div><div style="text-align:right"><b class="num" style="color:var(--ink)">${usd(r[3])}</b><br><span class="pill ${r[4]==='po splatnosti'?'bad':''}">${r[4]}</span></div></div>`).join('')}</div><button class="btn" data-act="invoice">Vystavit vyúčtování za týden</button></section>
+  </div>
+  <section class="card" style="margin-top:16px"><h2>Výdaje</h2><div class="tbl-wrap"><table><thead><tr><th>Datum</th><th>Položka</th><th>Kategorie</th><th class="r">Částka</th></tr></thead><tbody>${exps.map(e=>`<tr><td>${e[0]}</td><td>${e[1]}</td><td><span class="pill">${e[2]}</span></td><td class="r">${usd(e[3])}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+
+/* ---------- PARTNEŘI ---------- */
+function vPartneri(){
+  const c={'Aktivní':'ok','Ceník odeslán':'warn','Pozastaveno':'bad'};
+  return head('Obchod','Partneři','Agentury, hotely a dopravci. Navazuje na prospect list z Punta Cany.')+
+  `<section class="card"><div class="tbl-wrap"><table><thead><tr><th>Partner</th><th>Typ</th><th>Stav</th><th class="r">Marže</th><th>Fakturace</th><th>Další krok</th></tr></thead><tbody>
+  ${S.partners.map(p=>`<tr><td><b style="color:var(--ink)">${p.n}</b></td><td>${p.typ}</td><td><span class="pill ${c[p.st]||''}">${p.st}</span></td><td class="r">${p.m!=null?p.m+' %':''}</td><td>${p.bill}</td><td>${p.next}</td></tr>`).join('')}
+  </tbody></table></div><p class="note">Do budoucna tady může být i partnerský portál, kde si agentury samy zarezervují okruh ze stejné kapacity jako web.</p></section>`;
+}
+
+const RENDER={prehled:vPrehled,rezervace:vRezervace,web:vWeb,vstup:vVstup,smeny:vSmeny,ukoly:vUkoly,zvirata:vZvirata,nakupy:vNakupy,pokladna:vPokladna,finance:vFinance,partneri:vPartneri};
+function render(keepCam){persist();if(!keepCam)stopCam();if(!ROLES[S.role].includes(S.view))S.view='prehled';nav();$('#main').innerHTML=RENDER[S.view]();}
+
+function reportText(){
+  const g=S.book.reduce((s,b)=>s+pax(b),0)+onToday().reduce((a,o)=>a+pax(o),0);
+  return `Totem Nature Park · týden 14.–20. 12. 2026
+
+Návštěvnost: 412 hostů (dnes ${g}), průměrná obsazenost okruhů 74 %
+Čistá tržba vstupy: 9 850 USD, z toho web ${onToday().length} objednávek dnes; bar a shop: 1 120 USD
+Výdaje: 3 380 USD, z toho mzdové zálohy 3 200 USD vedené zvlášť
+Partneři: aktivní 4, nový v jednání Zoetry Agua
+Zvířata: bez vážných nálezů, saimiri „Coco“ pod dohledem veterináře
+Provoz: oprava plotu u výběhu opic po bouřce, nákup materiálu ${S.req.find(r=>r.id===1).st==='ceka'?'čeká na schválení':'schválen'}
+Další týden: ceník na leden pro Miro Travel, vánoční provoz bez omezení`;
+}
+
+/* ---------- události ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  const d=t.dataset;
+  if(d.go){S.view=d.go;render();window.scrollTo(0,0);return}
+  if(d.rtab){S.rtab=d.rtab;render();return}
+  if(d.mode){S.mode=d.mode;if(S.w.step<4&&S.w.step!==3){S.w.step=1}if(S.mode==='slot'&&!S.w.slot)S.w.slot=SLOTS.find(s=>leftOf(S.w.date,s)>0)||'13:00';render();toast(S.mode==='free'?'Fáze 2: zákazník kupuje jen den, přijde kdykoliv':'Fáze 1: pevné okruhy s průvodcem');return}
+  if(d.close!==undefined){const[day,sl]=d.close.split('|');if(sl){S.closed[day+'|'+sl]=!S.closed[day+'|'+sl]}else{const c=isClosed(day,null);SLOTS.forEach(x=>S.closed[day+'|'+x]=!c)}render();toast(isClosed(day,sl||null)?`${day} ${sl||''} zavřeno, web ho už nenabízí`:`${day} ${sl||''} znovu v prodeji`);return}
+  if(d.wd){S.w.date=d.wd;if(S.mode==='slot'&&leftOf(d.wd,S.w.slot)<=0)S.w.slot=SLOTS.find(s=>leftOf(d.wd,s)>0)||null;render();return}
+  if(d.ws){S.w.slot=d.ws;render();return}
+  if(d.wq){const[k,n]=d.wq.split(':');S.w[k]=Math.max(0,Math.min(20,S.w[k]+Number(n)));render();return}
+  if(d.scan){check(d.scan);return}
+  if(d.resend){toast('E-mail a WhatsApp s QR odeslány znovu');return}
+  if(d.refund){const o=S.online.find(x=>x.code===d.refund);o.st='zruseno';render();toast(`Refund ${usd(tsum(o))} odeslán přes PayPal, místa uvolněna`);return}
+  if(d.shift){const[k,i]=d.shift.split(':');const a=[...S.shifts[k]];a[i]={R:'O',O:'V',V:'R'}[a[i]];S.shifts[k]=a.join('');render();return}
+  if(d.move){const x=S.tasks.find(x=>x.id==d.move);x.col++;render();toast(x.col===2?'Úkol hotový':'Úkol rozpracovaný');return}
+  if(d.done){const x=S.tasks.find(x=>x.id==d.done);x.col=2;render();toast('Hotovo, díky!');return}
+  if(d.feed!==undefined){const f=S.feed[d.feed];f.ok=!f.ok;render();return}
+  if(d.restock!==undefined){const s=S.stock[d.restock];const p=CAT[s[2]].find(c=>c[0]===s[3]);addBasket(p,s[2]);S.basketNote=S.basketNote||'Doplnění krmiva, nízká zásoba';S.dept=s[2];S.view='nakupy';render();toast(`${s[0]} v košíku`);return}
+  if(d.dept){S.dept=d.dept;render();return}
+  if(d.add){const[dp,i]=d.add.split(':');addBasket(CAT[dp][i],dp);render();return}
+  if(d.q){const[i,n]=d.q.split(':').map(Number);S.basket[i][1]+=n;if(S.basket[i][1]<=0)S.basket.splice(i,1);render();return}
+  if(d.urg){keepNote();S.basketUrg=d.urg;render();return}
+  if(d.rq){const[id,st]=d.rq.split(':');S.req.find(r=>r.id==id).st=st;render();toast(ST[st][0]);return}
+  if(d.pc){S.posCat=d.pc;render();return}
+  if(d.sell!==undefined){const p=S.prods[S.posCat][d.sell];const c=S.cart.find(c=>c[0]===p[0]);c?c[1]++:S.cart.push([p[0],1,p[2]]);render();return}
+  if(d.cq){const[i,n]=d.cq.split(':').map(Number);S.cart[i][1]+=n;if(S.cart[i][1]<=0)S.cart.splice(i,1);render();return}
+  if(d.pay){S.payWith=d.pay;render();return}
+  if(d.arrive){S.book.find(b=>b.id==d.arrive).st='dorazili';render();toast('Skupina odbavena');return}
+  switch(d.act){
+    case 'w1':keepW();S.w.step=1;render();break;
+    case 'w2':S.w.step=2;render();break;
+    case 'w3':{keepW();const w=S.w;if(!w.name.trim()||!/^\S+@\S+\.\S+$/.test(w.email.trim())){toast('Vyplň jméno a platný e-mail');break}const s=S.mode==='free'?null:w.slot;if(pax(w)>leftOf(w.date,s)){S.w.step=1;render();toast('Mezitím se termín zaplnil, vyber jiný');break}const code=newCode();S.online.unshift({code,name:w.name.trim(),email:w.email.trim(),phone:w.phone.trim(),lang:w.lang,date:w.date,slot:s,ad:w.ad,ch:w.ch,inf:w.inf,st:'drzi',hold:Date.now()+15*60000,at:TD});w.code=code;w.step=3;render();break}
+    case 'wBack':S.online=S.online.filter(x=>x.code!==S.w.code);S.w.code=null;S.w.step=2;render();toast('Místa uvolněna');break;
+    case 'pp':S.w.pm=t.dataset.m;ppModal();break;
+    case 'ppPay':{const o=S.online.find(x=>x.code===S.w.code);$('#layer').innerHTML='';if(!o||o.st!=='drzi'){toast('Rezervace mezitím vypršela');render();break}o.st='zaplaceno';delete o.hold;S.w.step=4;render();toast('Platba přijata, e-mail s QR odeslán');break}
+    case 'ppFail':$('#layer').innerHTML='';toast('Karta zamítnuta, místa jsou pořád podržená');break;
+    case 'expire':{const o=S.online.find(x=>x.code===S.w.code);if(o)o.hold=Date.now()-1;break}
+    case 'toScan':S.view='vstup';window.scrollTo(0,0);check(S.w.code);break;
+    case 'wNew':S.w.step=1;S.w.code=null;render();break;
+    case 'admit':{const o=S.scan.res&&S.scan.res.o;if(!o)break;o.st='pouzito';o.used=hhmm();S.scan.res={k:'ok',t:'Vítejte!',p:`Vstup zapsán v ${o.used}. Počet hostů se propsal do Dneška a reportu.`,o};render();toast(`${pax(o)} hostů puštěno dovnitř`);break}
+    case 'moveToday':{const o=S.scan.res&&S.scan.res.o;if(!o)break;if(leftOf(TD,o.slot)<pax(o)){toast(`${o.slot?'Okruh '+o.slot:'Dnešek'} je plný, přesun nejde`);break}o.date=TD;o.st='pouzito';o.used=hhmm();S.scan.res={k:'ok',t:'Přesunuto a puštěno',p:`Vstupenka přesunuta na dnešek, vstup zapsán v ${o.used}.`,o};render();toast('Přesunuto na dnešek');break}
+    case 'cam':camToggle();break;
+    case 'resetDemo':if(DS){DS.reset();location.hash='';location.reload()}break;
+    case 'sendBasket':{keepNote();const r={id:Date.now(),by:S.role,dept:S.role==='simon'?S.dept:DEPT[S.role],items:S.basket.map(b=>[...b]),note:S.basketNote||'Bez popisu',urg:S.basketUrg,st:S.role==='simon'?'schvaleno':'ceka',d:'19. 12.'};S.req.unshift(r);S.basket=[];S.basketNote='';S.basketUrg='Běžné';render();toast(S.role==='simon'?'Nákup uložen':'Odesláno Šimonovi ke schválení');break}
+    case 'paid':{const sum=S.cart.reduce((s,c)=>s+c[1]*c[2],0);S.sales.unshift({t:'13:05',items:S.cart.map(c=>`${c[1]}× ${c[0]}`).join(', '),sum,pay:S.payWith});S.cart=[];render();toast('Zaplaceno '+usd(sum));break}
+    case 'swapok':S.shifts.jose=S.shifts.jose.slice(0,6)+'R';S.shifts.carla=S.shifts.carla.slice(0,6)+'V';S.swap.open=false;render();toast('Výměna schválena');break;
+    case 'swapno':S.swap.open=false;render();toast('Žádost zamítnuta');break;
+    case 'clockin':t.disabled=true;t.textContent='Příchod 7:02';toast('Příchod zapsán');break;
+    case 'close':toast('Uzávěrka odeslána do financí');break;
+    case 'invoice':toast('Vyúčtování pro Miro Travel připravené k odeslání');break;
+    case 'report':modal();break;
+    case 'closeModal':$('#layer').innerHTML='';break;
+    case 'copy':{const txt=reportText();const done=()=>toast('Zkopírováno');try{navigator.clipboard.writeText(txt).then(done,()=>sel())}catch(_){sel()}break}
+  }
+});
+function sel(){const p=document.querySelector('.modal pre');const r=document.createRange();r.selectNodeContents(p);const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Text označen, zkopíruj ho')}
+function modal(){$('#layer').innerHTML=`<div class="modal" data-bg="1"><section class="card" role="dialog" aria-modal="true" aria-label="Týdenní report"><div class="card-h"><h2>Týdenní report pro Zoo Kontakt</h2><button class="btn sm" data-act="closeModal">Zavřít</button></div><pre>${reportText()}</pre><p class="note">V ostré verzi odchází samo každé pondělí v 8:00 na e-mail vedení.</p><div class="row"><button class="btn pri" data-act="copy">Zkopírovat text</button></div></section></div>`}
+document.addEventListener('click',e=>{if(e.target.dataset&&e.target.dataset.bg)$('#layer').innerHTML=''});
+function addBasket(p,dp){keepNote();const b=S.basket.find(b=>b[0]===p[0]);b?b[1]++:S.basket.push([p[0],1,p[2],dp])}
+function keepNote(){const n=document.getElementById('bNote');if(n)S.basketNote=n.value}
+document.addEventListener('submit',e=>{
+  e.preventDefault();
+  if(e.target.id==='scanForm'){check($('#scanIn').value);return}
+  if(e.target.id==='bookForm'){const slot=$('#bS').value;const b={id:Date.now(),a:$('#bA').value,slot,ad:+$('#bAd').value||0,ch:+$('#bCh').value||0,inf:+$('#bIn').value||0,tr:$('#bTr').value==='1',st:'potvrzeno'};b.direct=b.a==='Přímý prodej';const u=used(TD,slot);if(isClosed(TD,slot)){toast(`Okruh ${slot} je zavřený`);return}if(u+pax(b)>CAP){toast(`Okruh ${slot} má volných jen ${CAP-u} míst`);return}if(!pax(b)){toast('Zadej počet hostů');return}S.book.push(b);render();toast('Rezervace přidána')}
+  if(e.target.id==='taskForm'){S.tasks.unshift({id:Date.now(),t:$('#tT').value,w:$('#tW').value,due:'dnes',col:0});render();toast('Úkol přidán')}
+});
+$('#role').addEventListener('change',e=>{S.role=e.target.value;S.basket=[];S.basketNote='';render()});
+
+/* odpočet podržených míst a automatické uvolnění */
+setInterval(()=>{
+  const now=Date.now();let ch=false;
+  S.online.forEach(o=>{if(o.st==='drzi'&&o.hold<now){o.st='vyprselo';ch=true}});
+  const el=document.getElementById('holdT');
+  if(el&&S.w.code){const o=S.online.find(x=>x.code===S.w.code);if(o&&o.st==='drzi')el.textContent=holdLeft(o)}
+  if(ch){if(S.w.step===3){S.w.step=1;S.w.code=null;toast('Čas na platbu vypršel, místa se uvolnila')}$('#layer').innerHTML='';render(S.view==='vstup')}
+},1000);
+
+/* změny z webu rezervací v jiné záložce */
+window.addEventListener('storage',e=>{if(DS&&(e.key===DS.K_ORDERS||e.key===DS.K_SETTINGS)){S.online=DS.load();const st=DS.settings();S.mode=st.mode;S.closed=st.closed;render(!!S.cam)}});
+
+/* odkaz z webu: admin/#scan=KÓD otevře skener, admin/#online objednávky */
+function route(){
+  const h=decodeURIComponent(location.hash||'');
+  const m=h.match(/scan=([A-Z0-9-]+)/i);
+  if(m){S.role='simon';$('#role').value='simon';S.view='vstup';check(m[1]);return true}
+  if(h==='#online'){S.view='rezervace';S.rtab='online';render();return true}
+  return false;
+}
+window.addEventListener('hashchange',route);
+if(!route())render();
+</script>

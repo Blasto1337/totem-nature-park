@@ -114,6 +114,7 @@ h1, h2, h3 { font-family: 'Alfa Slab One', serif; font-weight: 400; margin: 0; }
 .tickets .eyebrow { color: var(--gold); }
 .tickets h2 { font-size: clamp(32px, 4.5vw, 42px); color: var(--bone); }
 .tickets-head p { margin: 0; font-size: 17px; line-height: 1.6; color: var(--bone-soft); }
+.tickets-cta { display: flex; flex-wrap: wrap; gap: 16px; }
 
 /* VISIT */
 .visit {
