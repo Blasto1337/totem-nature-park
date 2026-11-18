@@ -4,6 +4,7 @@ Jedna databáze pro celý park: lidé, zvířata, sklad, nákupy, bar a shop, re
 
 - `migrations/20261118120000_totem_admin_schema.sql` tabulky, vazby, automatika a přístupová práva
 - `migrations/20261119090000_sklad.sql` sklad: místa skladu, příjemky, převody, výdej, odpisy, inventury
+- `migrations/20261119100000_pokladna_finance.sql` uzávěrka pokladny baru a shopu do financí
 - `seed.sql` výchozí nastavení, ceník vstupů (ukázkové ceny), účty, druhy zvířat a expozice
 
 ## Jak to nahrát
@@ -39,6 +40,7 @@ select cron.schedule('expire-holds', '* * * * *', 'select expire_holds()');
 | Ošetřovatel zapíše krmení | odečte krmivo ze skladu |
 | Veterinář zapíše podání léku | odečte lék i se šarží ze skladu, zůstane v historii zvířete |
 | Ana namarkuje prodej na baru | odečte zboží ze skladu a spočítá účtenku |
+| Ana uzavře den (`close_register`) | spočítá tržby podle způsobu platby, zapíše příjmy do financí rozdělené na bar a shop, rozdíl v pokladně zvlášť a při rozdílu od 5 USD upozorní ředitele |
 | Host zaplatí na webu | rezervace se přepne na zaplaceno, vznikne vstupenka s QR a příjem i poplatek PayPalu ve financích |
 | Obsluha naskenuje QR | ověří platnost, datum a že vstupenka ještě nebyla použita |
 | Kdokoliv změní peníze, sklad, léčiva nebo zvířata | zapíše se do historie změn (`audit_log`) |

@@ -702,7 +702,8 @@ const S={
     Shop:[['Plyšová ara','25 cm',18],['Tričko Totem','bavlna',22],['Magnet totem','dřevo',6],['Kšiltovka','logo',15],['Pohlednice','sada 5 ks',5],['Láhev Totem','nerez',19]]
   },
   cart:[],
-  sales:[{t:'12:41',items:'2× Coco frío, 1× Voda',sum:12,pay:'Karta'},{t:'12:20',items:'1× Plyšová ara',sum:18,pay:'USD'},{t:'11:58',items:'3× Presidente',sum:12,pay:'DOP'},{t:'11:02',items:'1× Tričko Totem, 1× Magnet',sum:28,pay:'Karta'}],
+  sales:[{t:'12:41',items:'2× Coco frío, 1× Voda',sum:12,bar:12,shop:0,pay:'Karta'},{t:'12:20',items:'1× Plyšová ara',sum:18,bar:0,shop:18,pay:'USD'},{t:'11:58',items:'3× Presidente',sum:12,bar:12,shop:0,pay:'DOP'},{t:'11:02',items:'1× Tričko Totem, 1× Magnet',sum:28,bar:0,shop:28,pay:'Karta'}],
+  closings:[{d:'18. 12.',t:'19:05',by:'ana',n:31,expUsd:142,cntUsd:142,expDop:5400,cntDop:5340,card:208,bar:236,shop:204}],
   partners:[
     {n:'Miro Travel',typ:'Agentura s dopravou',st:'Aktivní',m:35,bill:'týdně',next:'Ceník na leden do 20. 12.'},
     {n:'Nexus Tours',typ:'DMC',st:'Aktivní',m:35,bill:'měsíčně',next:'Schůzka se stánky v hotelech'},
@@ -1094,7 +1095,9 @@ function vNakupy(){
 function vPokladna(){
   const sum=S.cart.reduce((s,c)=>s+c[1]*c[2],0);
   const rate=60;
-  const by=m=>S.sales.filter(s=>s.pay===m).reduce((a,s)=>a+s.sum,0);
+  const open=S.sales.filter(s=>!s.closed);
+  const by=m=>open.filter(s=>s.pay===m).reduce((a,s)=>a+s.sum,0);
+  const last=S.closings[0];
   return head(TODAY,'Pokladna','Bar a souvenir shop. Hotovost v USD i pesos, karta přes terminál.')+
   `<div class="pos">
     <section class="card"><div class="tabs">${Object.keys(S.prods).map(c=>`<button class="tab" aria-pressed="${S.posCat===c}" data-pc="${c}">${c==='Bar'?'Bar':'Souvenir shop'}</button>`).join('')}</div>
@@ -1109,8 +1112,16 @@ function vPokladna(){
   </div>
   <div class="grid g2" style="margin-top:16px">
     <section class="card"><h2>Dnešní prodeje</h2><div class="list">${S.sales.map(s=>`<div class="li"><b class="num" style="width:44px;color:var(--ink)">${s.t}</b><div class="grow"><h3>${s.items}</h3></div><span class="pill">${s.pay}</span><b class="num">${usd(s.sum)}</b></div>`).join('')}</div></section>
-    <section class="card"><div class="card-h"><h2>Uzávěrka směny</h2><button class="btn sm" data-act="close">Uzavřít den</button></div><div class="tbl-wrap"><table><tbody>
-      <tr><td>Hotovost USD</td><td class="r">${usd(by('USD'))}</td></tr><tr><td>Hotovost DOP</td><td class="r">${usd(by('DOP'))}</td></tr><tr><td>Karta</td><td class="r">${usd(by('Karta'))}</td></tr><tr><td><b>Celkem</b></td><td class="r"><b>${usd(salesSum())}</b></td></tr></tbody></table></div><p class="note">Při uzávěrce Ana přepočítá hotovost v šuplíku, rozdíl se zapíše a vidíš ho ve financích.</p></section>
+    <section class="card"><div class="card-h"><h2>Uzávěrka dne</h2>${open.length?`<span class="pill">${open.length} otevřených účtenek</span>`:'<span class="pill ok">Uzavřeno</span>'}</div>
+    ${open.length?`<div class="tbl-wrap"><table><thead><tr><th></th><th class="r">Má být</th><th class="r">Napočítáno</th></tr></thead><tbody>
+      <tr><td>Hotovost USD</td><td class="r">${usd(by('USD'))}</td><td class="r"><input id="cntUsd" type="number" min="0" step="0.01" placeholder="${by('USD')}" style="width:100px" aria-label="Napočítáno USD"></td></tr>
+      <tr><td>Hotovost DOP</td><td class="r num">${(by('DOP')*rate).toLocaleString('cs-CZ')} DOP</td><td class="r"><input id="cntDop" type="number" min="0" step="1" placeholder="${by('DOP')*rate}" style="width:100px" aria-label="Napočítáno DOP"></td></tr>
+      <tr><td>Karta</td><td class="r">${usd(by('Karta'))}</td><td class="r note">z terminálu</td></tr>
+      <tr><td><b>Celkem</b></td><td class="r"><b>${usd(open.reduce((a,x)=>a+x.sum,0))}</b></td><td></td></tr></tbody></table></div>
+      <button class="btn pri" data-act="close">Uzavřít den a poslat do financí</button>
+      <p class="note" style="margin:0">Ana napočítá hotovost v šuplíku. Tržby se zapíšou do financí rozdělené na bar a shop a podle způsobu platby, rozdíl v pokladně zvlášť. Rozdíl od 5 USD dostane Šimon jako upozornění.</p>`:
+      `<p class="note" style="margin:0">Dnešní uzávěrka je hotová${last&&last.d===TD?` (${last.t}, ${STAFF[last.by].n})`:''}. Tržby jsou ve financích.</p>`}
+    </section>
   </div>`;
 }
 
@@ -1144,6 +1155,7 @@ function vFinance(){
     </section>
     <section class="card"><h2>Pohledávky u partnerů</h2><div class="list">${recv.map(r=>`<div class="li"><div class="grow"><h3>${r[0]}</h3><div class="meta">${r[2]} · fakturace ${r[1]}</div></div><div style="text-align:right"><b class="num" style="color:var(--ink)">${usd(r[3])}</b><br><span class="pill ${r[4]==='po splatnosti'?'bad':''}">${r[4]}</span></div></div>`).join('')}</div><button class="btn" data-act="invoice">Vystavit vyúčtování za týden</button></section>
   </div>
+  <section class="card" style="margin-top:16px"><div class="card-h"><h2>Bar a shop · uzávěrky</h2><button class="btn sm" data-go="pokladna">Pokladna</button></div>${S.closings.length?`<div class="tbl-wrap"><table><thead><tr><th>Den</th><th>Kdo</th><th class="r">Účtenek</th><th class="r">Bar</th><th class="r">Shop</th><th class="r">Z toho karta</th><th class="r">Rozdíl v pokladně</th></tr></thead><tbody>${S.closings.map(c=>{const du=c.cntUsd-c.expUsd,dd=c.cntDop-c.expDop;return `<tr><td>${c.d} ${c.t}</td><td>${STAFF[c.by].n}</td><td class="r">${c.n}</td><td class="r">${usd(c.bar)}</td><td class="r">${usd(c.shop)}</td><td class="r">${usd(c.card)}</td><td class="r">${du||dd?`<span class="pill ${Math.abs(du)>=5||Math.abs(dd)>=300?'bad':'warn'}">${du?usd(du):''}${du&&dd?' · ':''}${dd?dd.toLocaleString('cs-CZ')+' DOP':''}</span>`:'<span class="pill ok">sedí</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Zatím žádná uzávěrka</div>'}<p class="note" style="margin:0">Každá uzávěrka zapíše tržby do příjmů, rozdělené na bar a shop a podle způsobu platby.</p></section>
   <section class="card" style="margin-top:16px"><h2>Výdaje</h2><div class="tbl-wrap"><table><thead><tr><th>Datum</th><th>Položka</th><th>Kategorie</th><th class="r">Částka</th></tr></thead><tbody>${exps.map(e=>`<tr><td>${e[0]}</td><td>${e[1]}</td><td><span class="pill">${e[2]}</span></td><td class="r">${usd(e[3])}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 
@@ -1234,11 +1246,18 @@ document.addEventListener('click',e=>{
     case 'catNew':S.catEdit=null;render();break;
     case 'resetDemo':if(DS){DS.reset();location.hash='';location.reload()}break;
     case 'sendBasket':{keepNote();const r={id:Date.now(),by:S.role,dept:S.role==='simon'?S.dept:DEPT[S.role],items:S.basket.map(b=>[...b]),note:S.basketNote||'Bez popisu',urg:S.basketUrg,st:S.role==='simon'?'schvaleno':'ceka',d:'19. 12.'};S.req.unshift(r);S.basket=[];S.basketNote='';S.basketUrg='Běžné';render();toast(S.role==='simon'?'Nákup uložen':'Odesláno Šimonovi ke schválení');break}
-    case 'paid':{const sum=S.cart.reduce((s,c)=>s+c[1]*c[2],0);S.cart.forEach(c=>{const it=S.items.find(i=>i.name===c[0]);if(it)addMove(it.id,-c[1],'sale','bar',{note:'Prodej na baru'})});S.sales.unshift({t:'13:05',items:S.cart.map(c=>`${c[1]}× ${c[0]}`).join(', '),sum,pay:S.payWith});S.cart=[];render();toast('Zaplaceno '+usd(sum));break}
+    case 'paid':{const sum=S.cart.reduce((s,c)=>s+c[1]*c[2],0);S.cart.forEach(c=>{const it=S.items.find(i=>i.name===c[0]);if(it)addMove(it.id,-c[1],'sale','bar',{note:'Prodej na baru'})});const shopN=S.prods.Shop.map(x=>x[0]);const shop=S.cart.filter(c=>shopN.includes(c[0])).reduce((a,c)=>a+c[1]*c[2],0);S.sales.unshift({t:nowT(),items:S.cart.map(c=>`${c[1]}× ${c[0]}`).join(', '),sum,bar:sum-shop,shop,pay:S.payWith});S.cart=[];render();toast('Zaplaceno '+usd(sum));break}
     case 'swapok':S.shifts.jose=S.shifts.jose.slice(0,6)+'R';S.shifts.carla=S.shifts.carla.slice(0,6)+'V';S.swap.open=false;render();toast('Výměna schválena');break;
     case 'swapno':S.swap.open=false;render();toast('Žádost zamítnuta');break;
     case 'clockin':t.disabled=true;t.textContent='Příchod 7:02';toast('Příchod zapsán');break;
-    case 'close':toast('Uzávěrka odeslána do financí');break;
+    case 'close':{const open=S.sales.filter(x=>!x.closed);if(!open.length)break;const rate=60;
+      const sm=m=>open.filter(x=>x.pay===m).reduce((a,x)=>a+x.sum,0);
+      const iu=$('#cntUsd').value,idp=$('#cntDop').value;
+      if(iu===''||idp===''){toast('Napočítej hotovost v USD i DOP');break}
+      const c={d:TD,t:nowT(),by:S.role,n:open.length,expUsd:sm('USD'),cntUsd:+iu,expDop:sm('DOP')*rate,cntDop:+idp,card:sm('Karta'),bar:open.reduce((a,x)=>a+(x.bar??x.sum),0),shop:open.reduce((a,x)=>a+(x.shop||0),0)};
+      S.closings.unshift(c);open.forEach(x=>x.closed=true);render();
+      const du=c.cntUsd-c.expUsd,dd=c.cntDop-c.expDop;
+      toast(du||dd?`Uzavřeno s rozdílem ${du?usd(du):''}${du&&dd?' a ':''}${dd?dd.toLocaleString('cs-CZ')+' DOP':''}, zapsáno do financí`:'Uzavřeno, pokladna sedí. Tržby jsou ve financích.');break}
     case 'invoice':toast('Vyúčtování pro Miro Travel připravené k odeslání');break;
     case 'report':modal();break;
     case 'closeModal':$('#layer').innerHTML='';break;
