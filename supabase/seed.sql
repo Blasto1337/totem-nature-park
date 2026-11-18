@@ -48,3 +48,11 @@ insert into enclosures (name, zone) values
   ('Lenochodi',               'Jardín'),
   ('Opičí výběh (saimiri)',   'Jardín'),
   ('Karanténa',               'Zázemí');
+
+-- Místa skladu
+insert into stock_locations (name, kind) values
+  ('Krmivárna',            'feed'),
+  ('Veterinární lékárna',  'vet'),
+  ('Bar a shop',           'bar'),
+  ('Sklad údržby',         'maintenance')
+on conflict (name) do nothing;

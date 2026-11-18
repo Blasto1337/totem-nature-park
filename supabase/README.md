@@ -3,6 +3,7 @@
 Jedna databáze pro celý park: lidé, zvířata, sklad, nákupy, bar a shop, rezervace, partneři, finance a provoz.
 
 - `migrations/20261118120000_totem_admin_schema.sql` tabulky, vazby, automatika a přístupová práva
+- `migrations/20261119090000_sklad.sql` sklad: místa skladu, příjemky, převody, výdej, odpisy, inventury
 - `seed.sql` výchozí nastavení, ceník vstupů (ukázkové ceny), účty, druhy zvířat a expozice
 
 ## Jak to nahrát
@@ -33,6 +34,8 @@ select cron.schedule('expire-holds', '* * * * *', 'select expire_holds()');
 
 | Co se stane | Co udělá databáze sama |
 |---|---|
+| Někdo potvrdí příjemku (naskladnění) | navýší zásoby i se šarží a expirací, přepočítá nákupní cenu, nákup označí jako naskladněný, zapíše výdaj a při neúplné dodávce upozorní ředitele |
+| Někdo potvrdí inventuru | rozdíly proti systému zapíše jako pohyby, nic se nepřepisuje |
 | Ošetřovatel zapíše krmení | odečte krmivo ze skladu |
 | Veterinář zapíše podání léku | odečte lék i se šarží ze skladu, zůstane v historii zvířete |
 | Ana namarkuje prodej na baru | odečte zboží ze skladu a spočítá účtenku |
