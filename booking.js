@@ -71,6 +71,9 @@
   var orders = D.load();
   var cfg = D.settings();
   var w = { step: 1, date: D.TODAY, slot: '13:00', ad: 2, ch: 0, inf: 0, name: '', email: '', phone: '', hotel: '', code: null, err: '' };
+  /* proklik z ceníku na homepage: reservar.html?t=adult|child|infant předvyplní vstupenky */
+  var pre = { adult: { ad: 2 }, child: { ad: 1, ch: 1 }, infant: { ad: 1, inf: 1 } }[new URLSearchParams(location.search).get('t')];
+  if (pre) { w.ad = pre.ad; w.ch = pre.ch || 0; w.inf = pre.inf || 0; }
 
   function t() { return L[lang] || L.es; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }

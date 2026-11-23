@@ -41,6 +41,7 @@ h1, h2, h3 { font-family: 'Alfa Slab One', serif; font-weight: 400; margin: 0; }
 .brand { display: flex; align-items: center; gap: 14px; font-family: 'Alfa Slab One', serif; font-size: 18px; color: var(--bone); }
 .nav-links { display: flex; align-items: center; gap: 36px; color: var(--bone); }
 .nav .btn { height: 52px; padding: 0 28px; font-size: 17px; }
+.nav .nav-admin { padding: 0 20px; }
 
 /* LANGUAGE SWITCH */
 .lang-switch { display: inline-flex; border: 1.5px solid rgba(244,238,227,0.55); border-radius: 4px; overflow: hidden; }
@@ -115,6 +116,16 @@ h1, h2, h3 { font-family: 'Alfa Slab One', serif; font-weight: 400; margin: 0; }
 .tickets h2 { font-size: clamp(32px, 4.5vw, 42px); color: var(--bone); }
 .tickets-head p { margin: 0; font-size: 17px; line-height: 1.6; color: var(--bone-soft); }
 .tickets-cta { display: flex; flex-wrap: wrap; gap: 16px; }
+.price-row { display: flex; flex-wrap: wrap; gap: 20px; }
+.price-card { background: var(--gold); color: var(--oxblood); border-radius: 6px; padding: 22px 34px; min-width: 220px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; transition: transform 0.15s ease, filter 0.15s ease; }
+.price-card:hover { transform: translateY(-3px); filter: brightness(1.06); }
+.price-card:focus-visible { outline: 3px solid var(--bone); outline-offset: 3px; }
+.tickets .price-card .eyebrow { color: var(--oxblood); }
+.price { display: flex; align-items: baseline; gap: 8px; }
+.price strong { font-family: 'Alfa Slab One', serif; font-weight: 400; font-size: 64px; line-height: 1; }
+.price span { font-weight: 700; font-size: 18px; letter-spacing: 0.1em; }
+.price-go { font-weight: 700; font-size: 15px; margin-top: 4px; }
+.fineprint { margin: 0; font-size: 14px; color: var(--bone-soft); max-width: 640px; }
 
 /* VISIT */
 .visit {
@@ -160,6 +171,7 @@ h1, h2, h3 { font-family: 'Alfa Slab One', serif; font-weight: 400; margin: 0; }
   .brand svg { width: 22px; height: 25px; }
   .nav { gap: 10px; }
   .nav .btn { height: 44px; padding: 0 14px; font-size: 15px; }
+  .nav .nav-admin { padding: 0 10px; }
   .nav-links { gap: 10px; }
   .lang-btn { padding: 9px 9px; font-size: 13px; }
 }

@@ -30,6 +30,7 @@
         <button type="button" class="lang-btn" data-lang="es" aria-pressed="true">ES</button>
         <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
       </div>
+      <a href="admin/" class="btn btn-outline nav-admin" data-i18n="nav_admin">Admin</a>
       <a href="#entradas" class="btn btn-gold" data-i18n="nav_tickets">Entradas</a>
     </div>
   </header>
@@ -98,10 +99,28 @@
 
     <section class="tickets" id="entradas">
       <div class="tickets-head">
-        <span class="eyebrow" data-i18n="tickets_eyebrow">Próximamente</span>
+        <span class="eyebrow" data-i18n="tickets_eyebrow">Por persona · USD · traslado al hotel incluido</span>
         <h2 data-i18n="tickets_title">Entradas</h2>
-        <p data-i18n="tickets_text">Los precios de las entradas todavía no están definidos. Publicaremos aquí toda la información antes de la apertura prevista (finales de 2026).</p>
+        <p data-i18n="tickets_text">Un único precio fijo, con recogida y regreso al hotel. La alimentación de los animales está incluida.</p>
       </div>
+      <div class="price-row">
+        <a href="reservar.html?t=adult" class="price-card">
+          <span class="eyebrow" data-i18n="price_adult">Adulto</span>
+          <div class="price"><strong>80</strong><span>USD</span></div>
+          <span class="price-go" data-i18n="price_go">Reservar →</span>
+        </a>
+        <a href="reservar.html?t=child" class="price-card">
+          <span class="eyebrow" data-i18n="price_child">Niño</span>
+          <div class="price"><strong>45</strong><span>USD</span></div>
+          <span class="price-go" data-i18n="price_go">Reservar →</span>
+        </a>
+        <a href="reservar.html?t=infant" class="price-card">
+          <span class="eyebrow" data-i18n="price_infant">Menor de 2 años</span>
+          <div class="price"><strong data-i18n="price_free">Gratis</strong></div>
+          <span class="price-go" data-i18n="price_go">Reservar →</span>
+        </a>
+      </div>
+      <p class="fineprint" data-i18n="tickets_fine">Cancelación gratuita hasta 24 h antes de la visita. Fotos, bebidas y souvenirs se venden en el parque.</p>
       <div class="tickets-cta">
         <a href="reservar.html" class="btn btn-gold" data-i18n="tickets_online">Reservar en línea</a>
         <a href="https://wa.me/420777866887" class="btn btn-outline" data-i18n="tickets_cta">Escríbenos por WhatsApp</a>
