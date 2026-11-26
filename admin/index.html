@@ -231,6 +231,37 @@ td.r,th.r{text-align:right}
 .res.warn{background:var(--warn-soft);color:var(--warn)}
 .res .big{font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1}
 .res p{margin:0;color:var(--ink)}
+/* tým: organizační struktura a kontakty */
+.org{display:flex;flex-direction:column;align-items:center}
+.org-node{all:unset;cursor:pointer;box-sizing:border-box;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:center;min-width:min(280px,100%);box-shadow:inset 3px 0 0 var(--gold)}
+.org-node:hover{border-color:var(--accent)}
+.org-node:focus-visible{outline:2px solid var(--gold)}
+.org-node small,.mem small{display:block;color:var(--muted);font-size:12px}
+.org-node b{color:var(--ink);font-weight:600}
+.org-v{width:2px;height:18px;background:var(--line)}
+.org-teams{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;padding-top:18px}
+.org-teams::before{content:"";position:absolute;top:0;left:12.5%;right:12.5%;height:2px;background:var(--line)}
+.org-team{position:relative;background:var(--fill);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.org-team::before{content:"";position:absolute;top:-18px;left:50%;width:2px;height:18px;background:var(--line)}
+.org-team.ext{background:transparent;border:1.5px dashed var(--line)}
+.org-team .card-h h3{font-size:14px}
+.org-team p{margin:0}
+.mem{all:unset;cursor:pointer;box-sizing:border-box;display:flex;gap:9px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:7px 9px;min-width:0}
+.mem:hover{border-color:var(--accent)}
+.mem:focus-visible{outline:2px solid var(--gold)}
+.mem span.t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-weight:600;font-size:14px}
+.mem.open{cursor:default;border-style:dashed;background:transparent;color:var(--muted);font-size:13px;font-weight:600}
+.mem.open:hover{border-color:var(--line)}
+.mem.open i{width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--line);flex:none}
+.mem .av{width:26px;height:26px;font-size:11px}
+.ext-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ext-grid h3{font-family:var(--f-cond);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--muted);margin-bottom:8px}
+.ext-grid .list{gap:8px}
+.ct a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
+.ct a:hover{text-decoration:underline}
+.ct .wa{font-size:12px;margin-left:6px}
+.search{width:min(260px,100%)}
+@media (max-width:1100px){.org-teams{grid-template-columns:repeat(2,minmax(0,1fr))}.org-teams::before,.org-team::before{display:none}}
 @media (max-width:1100px){.g-main,.pos,.webwrap,.scan{grid-template-columns:1fr}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:820px){
   .app{grid-template-columns:1fr}
@@ -244,7 +275,7 @@ td.r,th.r{text-align:right}
   .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 48px}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}
-  .g2,.g3,.kan{grid-template-columns:1fr}
+  .g2,.g3,.kan,.org-teams,.ext-grid{grid-template-columns:1fr}
   .form{grid-template-columns:repeat(2,minmax(0,1fr))}
   .days{grid-template-columns:repeat(4,minmax(0,1fr))}
   .fgrid{grid-template-columns:1fr}
@@ -309,14 +340,15 @@ const VIEWS={
   nakupy:{t:'Nákupy',i:'<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>'},
   pokladna:{t:'Pokladna',i:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M7 9V4h10v5M7 14h2M11 14h2M15 14h2M7 17h10"/>'},
   finance:{t:'Finance',i:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'},
-  partneri:{t:'Partneři',i:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 15c3 0 5 2 5 4.5"/>'}
+  partneri:{t:'Partneři',i:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 15c3 0 5 2 5 4.5"/>'},
+  tym:{t:'Tým a kontakty',i:'<rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/>',nw:true}
 };
 const ROLES={
-  simon:['prehled','rezervace','web','vstup','smeny','ukoly','zvirata','sklad','nakupy','pokladna','finance','partneri'],
-  yasmin:['prehled','smeny','ukoly','zvirata','sklad','nakupy'],
-  ramon:['prehled','smeny','ukoly','zvirata','sklad','nakupy'],
-  luis:['prehled','smeny','ukoly','sklad','nakupy'],
-  ana:['prehled','vstup','pokladna','sklad','nakupy','smeny','ukoly']
+  simon:['prehled','rezervace','web','vstup','smeny','ukoly','zvirata','sklad','nakupy','pokladna','finance','partneri','tym'],
+  yasmin:['prehled','smeny','ukoly','zvirata','sklad','nakupy','tym'],
+  ramon:['prehled','smeny','ukoly','zvirata','sklad','nakupy','tym'],
+  luis:['prehled','smeny','ukoly','sklad','nakupy','tym'],
+  ana:['prehled','vstup','pokladna','sklad','nakupy','smeny','ukoly','tym']
 };
 const DEPT={yasmin:'chov',ramon:'vet',luis:'udrzba',ana:'bar',simon:'chov'};
 const DEPTN={chov:'Chov a krmivo',vet:'Veterina',udrzba:'Údržba',bar:'Bar a shop'};
@@ -640,6 +672,7 @@ const FLOW=['Zákazník vybere den a okruh. Web ukazuje živou kapacitu, agentur
 
 const S={
   role:'simon', view:'prehled', dept:'chov', posCat:'Bar', payWith:'USD',
+  team:null, tphase:1, tflt:'all', tq:'',
   basket:[], basketNote:'', basketUrg:'Běžné',
   mode:'slot', rtab:'dnes', closed:{'24. 12.|13:00':true}, cam:null,
   w:{step:1,date:TD,slot:'13:00',ad:2,ch:1,inf:0,name:'Anna Novak',email:'anna.novak@example.com',phone:'+1 555 010 0199',lang:'EN',code:null,pm:'card'},
@@ -728,6 +761,7 @@ const CAP=40;
 const DS=window.TotemDemo;
 if(DS){const st=DS.settings();S.mode=st.mode;S.closed=st.closed;S.online=DS.load();DS.expire(S.online)}
 seedStock();
+S.tphase=S.mode==='free'?2:1;
 function persist(){if(DS){DS.save(S.online);DS.saveSettings({mode:S.mode,closed:S.closed})}}
 
 /* rezervace: kapacity, online vstupenky */
@@ -1168,8 +1202,129 @@ function vPartneri(){
   </tbody></table></div><p class="note">Do budoucna tady může být i partnerský portál, kde si agentury samy zarezervují okruh ze stejné kapacity jako web.</p></section>`;
 }
 
-const RENDER={prehled:vPrehled,rezervace:vRezervace,web:vWeb,vstup:vVstup,smeny:vSmeny,ukoly:vUkoly,zvirata:vZvirata,sklad:vSklad,nakupy:vNakupy,pokladna:vPokladna,finance:vFinance,partneri:vPartneri};
-function render(keepCam){persist();if(!keepCam)stopCam();if(!ROLES[S.role].includes(S.view))S.view='prehled';nav();$('#main').innerHTML=RENDER[S.view]();}
+/* ---------- TÝM: organizační struktura a kontakty (podle Výstupu 04) ---------- */
+const POS={
+  md:{t:'Managing director',team:'lead'},
+  pr:{t:'Provozní ředitel',team:'lead'},
+  guide:{t:'Průvodce a ošetřovatel',team:'guide',f1:2,f2:6,d:'Ráno a večer péče o zvířata a výběhy, přes den skupiny max. 20 osob (fáze 1) nebo stanoviště (fáze 2).'},
+  maint:{t:'Údržba',team:'maint',f1:1,f2:1,d:'Areál, trasa, oplocení, technika, úklid zázemí a toalet.'},
+  bar:{t:'Bar a suvenýry',team:'bar',f1:1,f2:2,d:'Prodej na konci trasy, zásoby a denní uzávěrka.'},
+  vet:{t:'Veterinář',team:'ext',d:'Smlouva: prohlídky, pohotovost, krmné plány a dokumentace pro úřady.'},
+  acc:{t:'Účetní',team:'ext',d:'Smlouva: účetnictví a daně GREENWEST, mzdy a odvody do TSS.'},
+  ext:{t:'Rozšířený tým',team:'extended'}
+};
+const TEAMS=[['guide','Průvodci a ošetřovatelé'],['maint','Údržba'],['bar','Bar a suvenýry']];
+const BASE={DR:'Dominikánská republika',SK:'Slovensko',CZ:'Česko'};
+const TCOL={lead:'#8A4A2E',guide:'#2E7D5B',maint:'#7A5A2E',bar:'#B0662A',ext:'#3F6E8C',extended:'#5A4E9A'};
+/* skuteční lidé z Výstupu 04 mají kontakty prázdné (doplnit), provozní tým jsou ukázkové osoby prototypu */
+const SEED_TEAM=[
+  {id:'adam',n:'Adam Štiffel',pos:'md',org:'Zoo Kontakt',base:'',email:'',phone:'',note:'Vedení, managing director'},
+  {id:'simon',n:'Šimon Hrabák',pos:'pr',org:'',base:'DR',email:'',phone:'+420 777 866 887',note:'Řídí provoz parku, tři týmy a externisty',staff:'simon'},
+  {id:'yasmin',n:'Yasmín',pos:'guide',base:'DR',email:'yasmin@example.com',phone:'+1 809 555 0101',note:'Vede krmné plány a evidenci zvířat spolu s veterinářem',staff:'yasmin',demo:1},
+  {id:'miguel',n:'Miguel',pos:'guide',base:'DR',email:'miguel@example.com',phone:'+1 809 555 0102',staff:'miguel',demo:1},
+  {id:'carla',n:'Carla',pos:'guide',base:'DR',email:'carla@example.com',phone:'+1 809 555 0103',staff:'carla',demo:1},
+  {id:'jose',n:'José',pos:'guide',base:'DR',email:'jose@example.com',phone:'+1 809 555 0104',staff:'jose',demo:1},
+  {id:'luis',n:'Luis',pos:'maint',base:'DR',email:'luis@example.com',phone:'+1 809 555 0105',staff:'luis',demo:1},
+  {id:'ana',n:'Ana',pos:'bar',base:'DR',email:'ana@example.com',phone:'+1 809 555 0106',note:'Bar, shop a vstup',staff:'ana',demo:1},
+  {id:'ramon',n:'Dr. Ramón',pos:'vet',base:'DR',email:'ramon@example.com',phone:'+1 809 555 0107',note:'Smluvní veterinář',staff:'ramon',demo:1},
+  {id:'dario',n:'Dario',pos:'ext',base:'DR',email:'',phone:'',note:'Povolení a jednání s úřady'},
+  {id:'sirloandy',n:'Sirloandy',pos:'ext',base:'DR',email:'',phone:'',note:'Administrativa a místní náležitosti dokladů'},
+  {id:'nilson',n:'Nilson',pos:'ext',base:'DR',email:'',phone:'',note:'Údržba a role v Taíno vesnici; ověřit, zda pokryje pozici údržby'},
+  {id:'danka',n:'Danka',pos:'ext',base:'SK',email:'',phone:'',note:'Zoologická dokumentace a povolení, podílela se na Guía de manejo'},
+  {id:'peter',n:'Peter',pos:'ext',base:'SK',email:'',phone:'',note:'Stavba areálu a nových expozic, nejspíš v DR v první fázi'}
+];
+const K_TEAM='totem-demo-team';
+function loadTeam(){try{const x=JSON.parse(localStorage.getItem(K_TEAM));if(Array.isArray(x))return x}catch(e){}return JSON.parse(JSON.stringify(SEED_TEAM))}
+function saveTeam(){try{localStorage.setItem(K_TEAM,JSON.stringify(S.team))}catch(e){}}
+const tp=id=>S.team.find(p=>p.id===id);
+const teamOf=p=>(POS[p.pos]||POS.ext).team;
+const avP=p=>`<span class="av" style="background:${p.staff&&STAFF[p.staff]?STAFF[p.staff].c:TCOL[teamOf(p)]}" aria-hidden="true">${esc(p.n.replace('Dr. ','')[0]||'?')}</span>`;
+const telHref=t=>'tel:'+String(t).replace(/[^\d+]/g,'');
+const waHref=t=>'https://wa.me/'+String(t).replace(/\D/g,'');
+const posLbl=p=>p.pos==='ext'?(p.note||'Rozšířený tým'):POS[p.pos].t+(p.org?' · '+p.org:'');
+const emailCell=p=>`<td class="ct">${p.email?`<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`:'<span class="pill warn">doplnit</span>'}</td>`;
+const phoneCell=p=>`<td class="ct">${p.phone?`<a href="${telHref(p.phone)}">${esc(p.phone)}</a><a class="wa" href="${waHref(p.phone)}" target="_blank" rel="noopener">WhatsApp</a>`:'<span class="pill warn">doplnit</span>'}</td>`;
+const contactCells=p=>emailCell(p)+phoneCell(p);
+const memBtn=p=>`<button class="mem" data-person="${p.id}">${avP(p)}<span class="t">${esc(p.n)}${p.note&&p.pos!=='ext'?`<small>${esc(p.note)}</small>`:''}</span></button>`;
+
+function vTym(){
+  if(!S.team)S.team=loadTeam();
+  const boss=S.role==='simon',ph=S.tphase,f=ph===1?'f1':'f2';
+  const lead=k=>S.team.filter(p=>p.pos===k);
+  const node=p=>`<button class="org-node" data-person="${p.id}">${avP(p)}<span><b>${esc(p.n)}</b><small>${esc(POS[p.pos].t)}${p.org?' · '+esc(p.org):''}</small></span></button>`;
+  const team=([k,l])=>{
+    const ppl=S.team.filter(p=>p.pos===k),plan=POS[k][f],open=Math.max(0,plan-ppl.length);
+    return `<div class="org-team"><div class="card-h"><h3>${l}</h3><span class="pill ${ppl.length<plan?'warn':''}">${ppl.length} / ${plan}</span></div>
+    <p class="note">${POS[k].d}</p>
+    ${ppl.map(memBtn).join('')}${Array.from({length:open},()=>'<div class="mem open"><i></i>Volné místo · nábor</div>').join('')}</div>`;
+  };
+  const ext=['vet','acc'].map(k=>{const ppl=S.team.filter(p=>p.pos===k);return ppl.length?ppl.map(memBtn).join(''):`<div class="mem open"><i></i>${POS[k].t} · doplnit smlouvu</div>`}).join('');
+  const extended=S.team.filter(p=>p.pos==='ext');
+  const grp=b=>{const x=extended.filter(p=>p.base===b);return x.length?`<div><h3>${b==='DR'?'Na místě v DR':b==='SK'?'Ze Slovenska':BASE[b]}</h3><div class="list">${x.map(memBtn).join('')}</div></div>`:''};
+  const fixed=Object.keys(POS).filter(k=>POS[k][f]!=null&&POS[k].team!=='lead').reduce((a,k)=>a+POS[k][f],0);
+  const missing=S.team.filter(p=>!p.email||!p.phone).length;
+  const flt=S.tflt;
+  const rows=S.team.filter(p=>flt==='all'||(flt==='park'&&['lead','guide','maint','bar'].includes(teamOf(p)))||(flt==='ext'&&teamOf(p)==='ext')||(flt==='extended'&&teamOf(p)==='extended'));
+  return head('Lidé','Tým a kontakty','Organizační struktura podle Výstupu 04 a kontakty na všechny, se kterými park pracuje.',
+    `<div class="seg" role="group" aria-label="Fáze provozu">${[[1,'Fáze 1'],[2,'Fáze 2']].map(([k,l])=>`<button aria-pressed="${ph===k}" data-tphase="${k}">${l}</button>`).join('')}</div>${boss?'<button class="btn pri" data-act="personNew">Přidat kontakt</button>':''}`)+
+  `<section class="card" style="margin-bottom:16px"><div class="card-h"><h2>Organizační schéma · fáze ${ph}</h2><span class="note">${ph===1?'Pevné okruhy s průvodcem':'Volná zoo se stanovišti'} · ${fixed} stálých lidí v plánu</span></div>
+    <div class="org">
+      ${lead('md').map(node).join('')}<div class="org-v"></div>${lead('pr').map(node).join('')}<div class="org-v"></div>
+      <div class="org-teams">${TEAMS.map(team).join('')}<div class="org-team ext"><div class="card-h"><h3>Externě</h3><span class="pill">smlouva</span></div><p class="note">Veterinář a účetní na smlouvu.</p>${ext}</div></div>
+    </div>
+    <p class="note" style="margin:0">Průvodce a ošetřovatel je jedna pozice. Vedoucí chovatel, vedoucí směny a pokladna se zatím nezřizují: skupiny a waivery odbavuje průvodce, krmné plány vede zkušený průvodce s veterinářem. Klikni na člověka pro kontakt.</p>
+  </section>
+  ${extended.length?`<section class="card" style="margin-bottom:16px"><div class="card-h"><h2>Rozšířený tým</h2><span class="note">Mimo stálý personál parku</span></div><div class="ext-grid">${grp('DR')}${grp('SK')}${grp('CZ')}${grp('')}</div></section>`:''}
+  <section class="card"><div class="card-h"><div class="tabs">${[['all','Všichni'],['park','Park'],['ext','Externě'],['extended','Rozšířený tým']].map(([k,l])=>`<button class="tab" aria-pressed="${flt===k}" data-tflt="${k}">${l}</button>`).join('')}</div>
+    <input class="search" id="teamQ" type="search" placeholder="Hledat jméno, pozici, e-mail…" aria-label="Hledat v kontaktech" value="${esc(S.tq)}"></div>
+    ${missing?`<p class="note" style="margin:0"><span class="pill warn">${missing}</span> kontaktů nemá vyplněný e-mail nebo telefon.</p>`:''}
+    <div class="tbl-wrap"><table><thead><tr><th>Jméno</th><th>Pozice</th><th>Kde</th><th>E-mail</th><th>Telefon</th>${boss?'<th></th>':''}</tr></thead><tbody id="teamRows">
+    ${rows.map(p=>`<tr data-q="${esc((p.n+' '+posLbl(p)+' '+(BASE[p.base]||'')+' '+(p.org||'')+' '+(p.email||'')+' '+(p.phone||'')+' '+(p.note||'')).toLowerCase())}"><td><div class="row" style="flex-wrap:nowrap">${avP(p)}<b style="color:var(--ink)">${esc(p.n)}</b></div></td><td>${esc(posLbl(p))}</td><td>${p.base?`<span class="pill">${p.base}</span>`:''}</td>${contactCells(p)}${boss?`<td class="r"><button class="btn sm" data-pedit="${p.id}">Upravit</button></td>`:''}</tr>`).join('')}
+    </tbody></table></div><div class="empty" id="teamNone" hidden>Nikdo neodpovídá hledání</div>
+    <p class="note" style="margin:0">Ukázkové osoby provozního týmu mají smyšlené kontakty. Lidé z Výstupu 04 mají kontakty k doplnění.</p>
+  </section>`;
+}
+function filterTeam(){
+  const q=S.tq.trim().toLowerCase();let n=0;
+  document.querySelectorAll('#teamRows tr').forEach(r=>{const on=!q||r.dataset.q.includes(q);r.hidden=!on;if(on)n++});
+  const e=document.getElementById('teamNone');if(e)e.hidden=n>0;
+}
+function personCard(id){
+  const p=tp(id);if(!p)return;const boss=S.role==='simon';
+  $('#layer').innerHTML=`<div class="modal" data-bg="1"><section class="card" role="dialog" aria-modal="true" aria-label="Kontakt" style="max-width:460px">
+    <div class="card-h"><div class="row">${avP(p)}<div><div class="eyebrow">${esc(POS[p.pos].t)}${p.base?' · '+BASE[p.base]:''}</div><h2 style="font-size:16px;margin-top:4px;letter-spacing:.04em;text-transform:none;font-family:var(--f-sans)">${esc(p.n)}</h2></div></div><button class="btn sm" data-act="closeModal">Zavřít</button></div>
+    ${p.note?`<p style="margin:0">${esc(p.note)}</p>`:''}
+    <table class="kv"><tbody>${p.org?`<tr><td>Organizace</td><td>${esc(p.org)}</td></tr>`:''}<tr><td>E-mail</td>${emailCell(p)}</tr><tr><td>Telefon</td>${phoneCell(p)}</tr></tbody></table>
+    ${boss?`<div class="row"><button class="btn" data-pedit="${p.id}">Upravit kontakt</button></div>`:''}
+  </section></div>`;
+}
+function personForm(id){
+  const p=id?tp(id):{n:'',pos:'guide',base:'DR',org:'',email:'',phone:'',note:''};
+  $('#layer').innerHTML=`<div class="modal" data-bg="1"><section class="card" role="dialog" aria-modal="true" aria-label="${id?'Upravit kontakt':'Nový kontakt'}" style="max-width:560px">
+    <div class="card-h"><h2>${id?'Upravit kontakt':'Nový kontakt'}</h2><button class="btn sm" data-act="closeModal">Zavřít</button></div>
+    <form id="personForm" data-id="${id||''}" class="fgrid">
+      <label class="fl">Jméno<input id="pN" value="${esc(p.n)}" required></label>
+      <label class="fl">Pozice<select id="pP">${Object.entries(POS).map(([k,v])=>`<option value="${k}" ${k===p.pos?'selected':''}>${v.t}</option>`).join('')}</select></label>
+      <label class="fl">E-mail<input id="pE" type="email" value="${esc(p.email)}" placeholder="jmeno@domena.cz"></label>
+      <label class="fl">Telefon<input id="pT" type="tel" value="${esc(p.phone)}" placeholder="+1 809 …"></label>
+      <label class="fl">Kde působí<select id="pB"><option value="">neuvedeno</option>${Object.entries(BASE).map(([k,v])=>`<option value="${k}" ${k===p.base?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label class="fl">Organizace<input id="pO" value="${esc(p.org||'')}" placeholder="např. Zoo Kontakt"></label>
+      <label class="fl" style="grid-column:1/-1">Na co se na něj obrátit<input id="pNo" value="${esc(p.note||'')}"></label>
+      <div class="row" style="grid-column:1/-1;justify-content:space-between"><button class="btn pri" type="submit">Uložit</button>${id&&id!=='simon'?`<button class="btn" type="button" data-pdel="${id}">Odebrat z týmu</button>`:''}</div>
+    </form></section></div>`;
+  $('#pN').focus();
+}
+function personSubmit(f){
+  const v={n:$('#pN').value.trim(),pos:$('#pP').value,email:$('#pE').value.trim(),phone:$('#pT').value.trim(),base:$('#pB').value,org:$('#pO').value.trim(),note:$('#pNo').value.trim()};
+  if(!v.n){toast('Vyplň jméno');return}
+  if(v.email&&!/^\S+@\S+\.\S+$/.test(v.email)){toast('E-mail nevypadá správně');return}
+  const id=f.dataset.id;
+  if(id)Object.assign(tp(id),v);else S.team.push({id:'p'+Date.now(),...v});
+  saveTeam();$('#layer').innerHTML='';render();toast(id?'Kontakt uložen':'Kontakt přidán');
+}
+
+const RENDER={prehled:vPrehled,rezervace:vRezervace,web:vWeb,vstup:vVstup,smeny:vSmeny,ukoly:vUkoly,zvirata:vZvirata,sklad:vSklad,nakupy:vNakupy,pokladna:vPokladna,finance:vFinance,partneri:vPartneri,tym:vTym};
+function render(keepCam){persist();if(!keepCam)stopCam();if(!ROLES[S.role].includes(S.view))S.view='prehled';nav();$('#main').innerHTML=RENDER[S.view]();if(S.view==='tym')filterTeam();}
 
 function reportText(){
   const g=S.book.reduce((s,b)=>s+pax(b),0)+onToday().reduce((a,o)=>a+pax(o),0);
@@ -1221,6 +1376,11 @@ document.addEventListener('click',e=>{
   if(d.rcvdel!==undefined){S.rcv.lines.splice(+d.rcvdel,1);render();return}
   if(d.catedit){S.catEdit=d.catedit;render();window.scrollTo(0,0);return}
   if(d.wo){const[it,b]=d.wo.split('|');S.stab='vydej';S.iss={type:'writeoff',item:it,from:null,to:null,batch:b};render();return}
+  if(d.person){personCard(d.person);return}
+  if(d.pedit){personForm(d.pedit);return}
+  if(d.pdel){const p=tp(d.pdel);if(p&&confirm(`Odebrat ${p.n} z týmu?`)){S.team=S.team.filter(x=>x.id!==d.pdel);saveTeam();$('#layer').innerHTML='';render();toast('Odebráno')}return}
+  if(d.tphase){S.tphase=+d.tphase;render();return}
+  if(d.tflt){S.tflt=d.tflt;render();return}
   if(d.arrive){S.book.find(b=>b.id==d.arrive).st='dorazili';render();toast('Skupina odbavena');return}
   switch(d.act){
     case 'w1':keepW();S.w.step=1;render();break;
@@ -1261,6 +1421,7 @@ document.addEventListener('click',e=>{
     case 'invoice':toast('Vyúčtování pro Miro Travel připravené k odeslání');break;
     case 'report':modal();break;
     case 'closeModal':$('#layer').innerHTML='';break;
+    case 'personNew':personForm(null);break;
     case 'copy':{const txt=reportText();const done=()=>toast('Zkopírováno');try{navigator.clipboard.writeText(txt).then(done,()=>sel())}catch(_){sel()}break}
   }
 });
@@ -1275,6 +1436,7 @@ document.addEventListener('submit',e=>{
   if(e.target.id==='bookForm'){const slot=$('#bS').value;const b={id:Date.now(),a:$('#bA').value,slot,ad:+$('#bAd').value||0,ch:+$('#bCh').value||0,inf:+$('#bIn').value||0,tr:$('#bTr').value==='1',st:'potvrzeno'};b.direct=b.a==='Přímý prodej';const u=used(TD,slot);if(isClosed(TD,slot)){toast(`Okruh ${slot} je zavřený`);return}if(u+pax(b)>CAP){toast(`Okruh ${slot} má volných jen ${CAP-u} míst`);return}if(!pax(b)){toast('Zadej počet hostů');return}S.book.push(b);render();toast('Rezervace přidána')}
   if(e.target.id==='issueForm'){issueSubmit();return}
   if(e.target.id==='catForm'){catSubmit();return}
+  if(e.target.id==='personForm'){personSubmit(e.target);return}
   if(e.target.id==='taskForm'){S.tasks.unshift({id:Date.now(),t:$('#tT').value,w:$('#tW').value,due:'dnes',col:0});render();toast('Úkol přidán')}
 });
 $('#role').addEventListener('change',e=>{S.role=e.target.value;S.basket=[];S.basketNote='';render()});
@@ -1298,6 +1460,7 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target,d=t.dataset||{};
+  if(t.id==='teamQ'){S.tq=t.value;filterTeam();return}
   if(d.rcvsup!==undefined&&S.rcv){S.rcv.sup=t.value;return}
   if(d.rf&&S.rcv){const[n,f]=d.rf.split(':');if(f==='item')return;const l=S.rcv.lines[+n];l[f]=t.value;
     if(f==='qty')t.style.borderColor=l.ordered!=null&&+t.value<l.ordered?'var(--gold)':'';

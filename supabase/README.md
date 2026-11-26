@@ -5,7 +5,8 @@ Jedna databáze pro celý park: lidé, zvířata, sklad, nákupy, bar a shop, re
 - `migrations/20261118120000_totem_admin_schema.sql` tabulky, vazby, automatika a přístupová práva
 - `migrations/20261119090000_sklad.sql` sklad: místa skladu, příjemky, převody, výdej, odpisy, inventury
 - `migrations/20261119100000_pokladna_finance.sql` uzávěrka pokladny baru a shopu do financí
-- `seed.sql` výchozí nastavení, ceník vstupů (ukázkové ceny), účty, druhy zvířat a expozice
+- `migrations/20261126090000_tym_organizace.sql` organizační struktura (pozice, počty pro fázi 1 a 2, kdo komu podléhá) a kontakty na tým
+- `seed.sql` výchozí nastavení, ceník vstupů (ukázkové ceny), účty, druhy zvířat, expozice a pozice z organizační struktury
 
 ## Jak to nahrát
 

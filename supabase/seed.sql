@@ -57,3 +57,20 @@ insert into stock_locations (name, kind) values
   ('Bar a shop',           'bar'),
   ('Sklad údržby',         'maintenance')
 on conflict (name) do nothing;
+
+-- Organizační struktura podle Výstupu 04 (pozice a plánované počty pro fázi 1 a 2)
+do $$
+declare v_md uuid; v_pr uuid;
+begin
+  if exists (select 1 from positions) then return; end if;
+  insert into positions (title, department, phase1_count, phase2_count, sort, description)
+    values ('Managing director', 'management', 1, 1, 0, 'Vedení za Zoo Kontakt') returning id into v_md;
+  insert into positions (title, department, phase1_count, phase2_count, reports_to, sort, description)
+    values ('Provozní ředitel', 'management', 1, 1, v_md, 1, 'Řídí provoz parku, tři týmy a externisty') returning id into v_pr;
+  insert into positions (title, department, kind, phase1_count, phase2_count, reports_to, sort, description) values
+    ('Průvodce a ošetřovatel', 'guides',      'staff',    2,    6,    v_pr, 10, 'Ráno a večer péče o zvířata a výběhy, přes den skupiny (fáze 1) nebo stanoviště (fáze 2)'),
+    ('Údržba',                 'maintenance', 'staff',    1,    1,    v_pr, 11, 'Areál, trasa, oplocení, technika, úklid zázemí a toalet'),
+    ('Bar a suvenýry',         'bar_shop',    'staff',    1,    2,    v_pr, 12, 'Prodej na konci trasy, zásoby, denní uzávěrka'),
+    ('Veterinář',              'vet',         'external', null, null, v_pr, 20, 'Pravidelné návštěvy, pohotovost, krmné plány a dokumentace pro úřady'),
+    ('Účetní',                 'office',      'external', null, null, v_pr, 21, 'Účetnictví a daně GREENWEST, mzdy a odvody do TSS, podklady pro DGII');
+end $$;
