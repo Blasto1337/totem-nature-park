@@ -59,6 +59,9 @@ input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);bo
 .who label{font-family:var(--f-cond);letter-spacing:.16em;font-size:11px;text-transform:uppercase;color:var(--side-muted)}
 .who select{background:var(--side-deep);color:var(--side-ink);border-color:rgba(244,238,227,.18)}
 .who p{margin:0;font-size:12px;color:var(--side-muted)}
+.who .langs{background:var(--side-deep);align-self:flex-start;flex-wrap:nowrap}
+.who .langs button{color:var(--side-ink);padding:4px 10px;font-size:12px;letter-spacing:.06em}
+.who .langs button[aria-pressed="true"]{background:var(--gold);color:#3A1D16}
 .weblink{color:var(--side-muted);font-size:13px;font-weight:600;text-decoration:none}
 .weblink:hover{color:var(--side-ink)}
 /* main */
@@ -272,6 +275,7 @@ td.r,th.r{text-align:right}
   .nav button[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--gold)}
   .who{margin:0 0 0 auto;border:0;padding:0;flex-direction:row;align-items:center}
   .who label,.who p,.weblink{display:none}
+  .who .langs button{padding:4px 7px}
   .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 48px}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}
@@ -290,6 +294,7 @@ td.r,th.r{text-align:right}
     <div class="brand"><img src="data:image/png;base64,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" alt=""><div><b>TOTEM<br>NATURE PARK</b><small>Admin</small></div></div>
     <nav class="nav" id="nav" aria-label="Moduly"></nav>
     <div class="who">
+      <div class="seg langs" role="group" aria-label="Jazyk"><button data-alang="cs" aria-pressed="false">CZ</button><button data-alang="sk" aria-pressed="false">SK</button><button data-alang="en" aria-pressed="false">EN</button><button data-alang="es" aria-pressed="false">ES</button></div>
       <label for="role">Přihlášen jako</label>
       <select id="role">
         <option value="simon">Šimon · ředitel</option>
@@ -308,9 +313,14 @@ td.r,th.r{text-align:right}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="../demo-store.js"></script>
+<script src="i18n-engine.js"></script>
+<script src="i18n.js"></script>
 <script>
 const $=s=>document.querySelector(s);
-const usd=n=>(n<0?'−':'')+Math.abs(n).toLocaleString('cs-CZ',{maximumFractionDigits:n%1?2:0,minimumFractionDigits:n%1?2:0})+' USD';
+const I18N=window.TotemI18n;
+const LOC=()=>I18N?I18N.locale():'cs-CZ';
+const tr=s=>I18N?I18N.tr(s):s;
+const usd=n=>(n<0?'−':'')+Math.abs(n).toLocaleString(LOC(),{maximumFractionDigits:n%1?2:0,minimumFractionDigits:n%1?2:0})+' USD';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TODAY='So 19. 12. 2026';
 const TD='19. 12.';
@@ -361,7 +371,7 @@ const CATDEPT={feed:'chov',medicine:'vet',maintenance:'udrzba',bar:'bar',shop:'b
 const ROLECATS={simon:null,yasmin:['feed'],ramon:['medicine'],luis:['maintenance'],ana:['bar','shop']};
 const TODAY_ISO='2026-12-19';
 const nowT=()=>{const n=new Date();return n.getHours()+':'+String(n.getMinutes()).padStart(2,'0')};
-const fq=n=>Number(n).toLocaleString('cs-CZ',{maximumFractionDigits:2});
+const fq=n=>Number(n).toLocaleString(LOC(),{maximumFractionDigits:2});
 const czDate=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return `${+d}. ${+m}. ${y}`};
 const daysTo=iso=>Math.round((new Date(iso)-new Date(TODAY_ISO))/864e5);
 const item=id=>S.items.find(i=>i.id===id);
@@ -441,7 +451,7 @@ function skZasoby(){
   const low=all.filter(isLow), exp=expiring();
   const value=all.reduce((a,i)=>a+Math.max(0,onHand(i.id))*(i.cost||0),0);
   return `<div class="stats">
-    <div class="stat"><span>Položek</span><b>${all.length}</b><small>${cats.map(c=>ICAT[c]).join(', ')}</small></div>
+    <div class="stat"><span>Položek</span><b>${all.length}</b><small>${cats.map(c=>ICAT[c]).join(' · ')}</small></div>
     <div class="stat"><span>Pod minimem</span><b>${low.length}</b><small>doplnit</small></div>
     <div class="stat"><span>Expirace do 60 dní</span><b>${exp.length}</b><small>šarže</small></div>
     <div class="stat"><span>Hodnota skladu</span><b>${usd(Math.round(value))}</b><small>v nákupních cenách</small></div>
@@ -856,7 +866,7 @@ function vMyDay(){
   const mine=S.tasks.filter(t=>t.w===S.role&&t.col<2);
   const keeper=['yasmin','ramon'].includes(S.role);
   const myReq=S.req.filter(r=>r.by===S.role);
-  return head(TODAY,`Hola, ${me.n.replace('Dr. ','')}`,me.r+' · zaměstnanci uvidí appku ve španělštině')+
+  return head(TODAY,`Ahoj, ${me.n.replace('Dr. ','')}`,me.r)+
   `<div class="grid g2">
     <section class="card"><h2>Moje směna</h2><div class="li">${av(S.role)}<div class="grow"><h3>${sh==='R'?'Ranní 7:00 až 15:00':sh==='O'?'Odpolední 11:00 až 19:00':'Dnes máš volno'}</h3><div class="meta">Příchod potvrdíš QR kódem u brány</div></div><button class="btn ok sm" data-act="clockin">Píchnout příchod</button></div></section>
     <section class="card"><div class="card-h"><h2>Moje úkoly</h2><button class="btn sm" data-go="ukoly">Všechny</button></div>
@@ -1139,7 +1149,7 @@ function vPokladna(){
     <section class="card"><h2>Účtenka</h2>
       ${S.cart.length?`<div class="list">${S.cart.map((c,i)=>`<div class="li"><div class="grow"><h3>${c[0]}</h3><div class="meta">${usd(c[2])}</div></div><span class="qty"><button data-cq="${i}:-1" aria-label="Ubrat">−</button><span>${c[1]}</span><button data-cq="${i}:1" aria-label="Přidat">+</button></span></div>`).join('')}</div>
       <div class="total"><span>K zaplacení</span><b>${usd(sum)}</b></div>
-      ${S.payWith==='DOP'?`<p class="note num">= ${(sum*rate).toLocaleString('cs-CZ')} DOP (kurz nastavíš v adminu, tady ukázka 1 USD = ${rate} DOP)</p>`:''}
+      ${S.payWith==='DOP'?`<p class="note num">= ${(sum*rate).toLocaleString(LOC())} DOP (kurz nastavíš v adminu, tady ukázka 1 USD = ${rate} DOP)</p>`:''}
       <div class="tabs">${[['USD','Hotově USD'],['DOP','Hotově DOP'],['Karta','Karta']].map(([k,l])=>`<button class="tab" aria-pressed="${S.payWith===k}" data-pay="${k}">${l}</button>`).join('')}</div>
       <button class="btn pri" data-act="paid">Zaplaceno</button>`:'<div class="empty">Klikni na produkt a přidá se na účtenku</div>'}
     </section>
@@ -1149,7 +1159,7 @@ function vPokladna(){
     <section class="card"><div class="card-h"><h2>Uzávěrka dne</h2>${open.length?`<span class="pill">${open.length} otevřených účtenek</span>`:'<span class="pill ok">Uzavřeno</span>'}</div>
     ${open.length?`<div class="tbl-wrap"><table><thead><tr><th></th><th class="r">Má být</th><th class="r">Napočítáno</th></tr></thead><tbody>
       <tr><td>Hotovost USD</td><td class="r">${usd(by('USD'))}</td><td class="r"><input id="cntUsd" type="number" min="0" step="0.01" placeholder="${by('USD')}" style="width:100px" aria-label="Napočítáno USD"></td></tr>
-      <tr><td>Hotovost DOP</td><td class="r num">${(by('DOP')*rate).toLocaleString('cs-CZ')} DOP</td><td class="r"><input id="cntDop" type="number" min="0" step="1" placeholder="${by('DOP')*rate}" style="width:100px" aria-label="Napočítáno DOP"></td></tr>
+      <tr><td>Hotovost DOP</td><td class="r num">${(by('DOP')*rate).toLocaleString(LOC())} DOP</td><td class="r"><input id="cntDop" type="number" min="0" step="1" placeholder="${by('DOP')*rate}" style="width:100px" aria-label="Napočítáno DOP"></td></tr>
       <tr><td>Karta</td><td class="r">${usd(by('Karta'))}</td><td class="r note">z terminálu</td></tr>
       <tr><td><b>Celkem</b></td><td class="r"><b>${usd(open.reduce((a,x)=>a+x.sum,0))}</b></td><td></td></tr></tbody></table></div>
       <button class="btn pri" data-act="close">Uzavřít den a poslat do financí</button>
@@ -1171,7 +1181,7 @@ function vFinance(){
   const y=v=>H-v/max*H;
   const ticks=[0,1000,2000].filter(t=>t<max);
   const chart=`<svg class="chart" viewBox="-40 -10 ${W+50} ${H+34}" style="width:100%;height:auto" role="img" aria-label="Příjmy a výdaje za posledních 7 dní">
-    ${ticks.map(t=>`<line x1="0" x2="${W}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="-8" y="${y(t)+4}" text-anchor="end">${t.toLocaleString('cs-CZ')}</text>`).join('')}
+    ${ticks.map(t=>`<line x1="0" x2="${W}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="-8" y="${y(t)+4}" text-anchor="end">${t.toLocaleString(LOC())}</text>`).join('')}
     ${inc.map((v,i)=>`<rect x="${i*gap+gap/2-bw-2}" y="${y(v)}" width="${bw}" height="${H-y(v)}" rx="3" fill="var(--palm)"/><rect x="${i*gap+gap/2+2}" y="${y(exp[i])}" width="${bw}" height="${H-y(exp[i])}" rx="3" fill="var(--gold)"/><text x="${i*gap+gap/2}" y="${H+18}" text-anchor="middle" ${i===6?'style="fill:var(--ink);font-weight:700"':''}>${days[i]}</text>`).join('')}
   </svg>`;
   const recv=[['Miro Travel','týdně','14.–20. 12.',1240,'otevřené'],['Nexus Tours','měsíčně','prosinec',2980,'otevřené'],['Amstar','měsíčně','prosinec',1515,'otevřené'],['Hotel v Uvero Alto','týdně','7.–13. 12.',410,'po splatnosti']];
@@ -1189,7 +1199,7 @@ function vFinance(){
     </section>
     <section class="card"><h2>Pohledávky u partnerů</h2><div class="list">${recv.map(r=>`<div class="li"><div class="grow"><h3>${r[0]}</h3><div class="meta">${r[2]} · fakturace ${r[1]}</div></div><div style="text-align:right"><b class="num" style="color:var(--ink)">${usd(r[3])}</b><br><span class="pill ${r[4]==='po splatnosti'?'bad':''}">${r[4]}</span></div></div>`).join('')}</div><button class="btn" data-act="invoice">Vystavit vyúčtování za týden</button></section>
   </div>
-  <section class="card" style="margin-top:16px"><div class="card-h"><h2>Bar a shop · uzávěrky</h2><button class="btn sm" data-go="pokladna">Pokladna</button></div>${S.closings.length?`<div class="tbl-wrap"><table><thead><tr><th>Den</th><th>Kdo</th><th class="r">Účtenek</th><th class="r">Bar</th><th class="r">Shop</th><th class="r">Z toho karta</th><th class="r">Rozdíl v pokladně</th></tr></thead><tbody>${S.closings.map(c=>{const du=c.cntUsd-c.expUsd,dd=c.cntDop-c.expDop;return `<tr><td>${c.d} ${c.t}</td><td>${STAFF[c.by].n}</td><td class="r">${c.n}</td><td class="r">${usd(c.bar)}</td><td class="r">${usd(c.shop)}</td><td class="r">${usd(c.card)}</td><td class="r">${du||dd?`<span class="pill ${Math.abs(du)>=5||Math.abs(dd)>=300?'bad':'warn'}">${du?usd(du):''}${du&&dd?' · ':''}${dd?dd.toLocaleString('cs-CZ')+' DOP':''}</span>`:'<span class="pill ok">sedí</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Zatím žádná uzávěrka</div>'}<p class="note" style="margin:0">Každá uzávěrka zapíše tržby do příjmů, rozdělené na bar a shop a podle způsobu platby.</p></section>
+  <section class="card" style="margin-top:16px"><div class="card-h"><h2>Bar a shop · uzávěrky</h2><button class="btn sm" data-go="pokladna">Pokladna</button></div>${S.closings.length?`<div class="tbl-wrap"><table><thead><tr><th>Den</th><th>Kdo</th><th class="r">Účtenek</th><th class="r">Bar</th><th class="r">Shop</th><th class="r">Z toho karta</th><th class="r">Rozdíl v pokladně</th></tr></thead><tbody>${S.closings.map(c=>{const du=c.cntUsd-c.expUsd,dd=c.cntDop-c.expDop;return `<tr><td>${c.d} ${c.t}</td><td>${STAFF[c.by].n}</td><td class="r">${c.n}</td><td class="r">${usd(c.bar)}</td><td class="r">${usd(c.shop)}</td><td class="r">${usd(c.card)}</td><td class="r">${du||dd?`<span class="pill ${Math.abs(du)>=5||Math.abs(dd)>=300?'bad':'warn'}">${du?usd(du):''}${du&&dd?' · ':''}${dd?dd.toLocaleString(LOC())+' DOP':''}</span>`:'<span class="pill ok">sedí</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Zatím žádná uzávěrka</div>'}<p class="note" style="margin:0">Každá uzávěrka zapíše tržby do příjmů, rozdělené na bar a shop a podle způsobu platby.</p></section>
   <section class="card" style="margin-top:16px"><h2>Výdaje</h2><div class="tbl-wrap"><table><thead><tr><th>Datum</th><th>Položka</th><th>Kategorie</th><th class="r">Částka</th></tr></thead><tbody>${exps.map(e=>`<tr><td>${e[0]}</td><td>${e[1]}</td><td><span class="pill">${e[2]}</span></td><td class="r">${usd(e[3])}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 
@@ -1286,7 +1296,7 @@ function vTym(){
 }
 function filterTeam(){
   const q=S.tq.trim().toLowerCase();let n=0;
-  document.querySelectorAll('#teamRows tr').forEach(r=>{const on=!q||r.dataset.q.includes(q);r.hidden=!on;if(on)n++});
+  document.querySelectorAll('#teamRows tr').forEach(r=>{const on=!q||(r.dataset.q+' '+r.textContent.toLowerCase()).includes(q);r.hidden=!on;if(on)n++});
   const e=document.getElementById('teamNone');if(e)e.hidden=n>0;
 }
 function personCard(id){
@@ -1343,6 +1353,7 @@ Další týden: ceník na leden pro Miro Travel, vánoční provoz bez omezení`
 document.addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
   const d=t.dataset;
+  if(d.alang){if(I18N)I18N.setLang(d.alang);render(!!S.cam);return}
   if(d.go){S.view=d.go;render();window.scrollTo(0,0);return}
   if(d.rtab){S.rtab=d.rtab;render();return}
   if(d.mode){S.mode=d.mode;if(S.w.step<4&&S.w.step!==3){S.w.step=1}if(S.mode==='slot'&&!S.w.slot)S.w.slot=SLOTS.find(s=>leftOf(S.w.date,s)>0)||'13:00';render();toast(S.mode==='free'?'Fáze 2: zákazník kupuje jen den, přijde kdykoliv':'Fáze 1: pevné okruhy s průvodcem');return}
@@ -1378,7 +1389,7 @@ document.addEventListener('click',e=>{
   if(d.wo){const[it,b]=d.wo.split('|');S.stab='vydej';S.iss={type:'writeoff',item:it,from:null,to:null,batch:b};render();return}
   if(d.person){personCard(d.person);return}
   if(d.pedit){personForm(d.pedit);return}
-  if(d.pdel){const p=tp(d.pdel);if(p&&confirm(`Odebrat ${p.n} z týmu?`)){S.team=S.team.filter(x=>x.id!==d.pdel);saveTeam();$('#layer').innerHTML='';render();toast('Odebráno')}return}
+  if(d.pdel){const p=tp(d.pdel);if(p&&confirm(tr(`Odebrat ${p.n} z týmu?`))){S.team=S.team.filter(x=>x.id!==d.pdel);saveTeam();$('#layer').innerHTML='';render();toast('Odebráno')}return}
   if(d.tphase){S.tphase=+d.tphase;render();return}
   if(d.tflt){S.tflt=d.tflt;render();return}
   if(d.arrive){S.book.find(b=>b.id==d.arrive).st='dorazili';render();toast('Skupina odbavena');return}
@@ -1417,7 +1428,7 @@ document.addEventListener('click',e=>{
       const c={d:TD,t:nowT(),by:S.role,n:open.length,expUsd:sm('USD'),cntUsd:+iu,expDop:sm('DOP')*rate,cntDop:+idp,card:sm('Karta'),bar:open.reduce((a,x)=>a+(x.bar??x.sum),0),shop:open.reduce((a,x)=>a+(x.shop||0),0)};
       S.closings.unshift(c);open.forEach(x=>x.closed=true);render();
       const du=c.cntUsd-c.expUsd,dd=c.cntDop-c.expDop;
-      toast(du||dd?`Uzavřeno s rozdílem ${du?usd(du):''}${du&&dd?' a ':''}${dd?dd.toLocaleString('cs-CZ')+' DOP':''}, zapsáno do financí`:'Uzavřeno, pokladna sedí. Tržby jsou ve financích.');break}
+      toast(du||dd?`Uzavřeno s rozdílem ${du?usd(du):''}${du&&dd?' a ':''}${dd?dd.toLocaleString(LOC())+' DOP':''}, zapsáno do financí`:'Uzavřeno, pokladna sedí. Tržby jsou ve financích.');break}
     case 'invoice':toast('Vyúčtování pro Miro Travel připravené k odeslání');break;
     case 'report':modal();break;
     case 'closeModal':$('#layer').innerHTML='';break;
@@ -1480,5 +1491,6 @@ function route(){
   return false;
 }
 window.addEventListener('hashchange',route);
+if(I18N)I18N.start();
 if(!route())render();
 </script>
